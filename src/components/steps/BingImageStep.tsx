@@ -14,6 +14,7 @@ interface BingImageStepProps {
 
 export function BingImageStep({ placeId, title, address, website }: BingImageStepProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  console.log("BingImageStep - website prop:", website); // Debug log
   const { photos, isLoading, searchImages } = useBingImageSearch(title, address, website);
   const { saveImage, isSaving } = useImageSave();
 

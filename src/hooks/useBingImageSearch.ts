@@ -14,54 +14,20 @@ export function useBingImageSearch(title: string, address: string, website?: str
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const extractWebsiteFromTitle = (title: string): string | null => {
-    const domains = ['.fr', '.com', '.net', '.org', '.eu'];
-    const words = title.split(' ');
-    
-    for (const word of words) {
-      if (domains.some(domain => word.toLowerCase().includes(domain))) {
-        const domainEnd = Math.max(...domains.map(d => word.toLowerCase().indexOf(d) + d.length));
-        return word.substring(0, domainEnd);
-      }
-    }
-    return null;
-  };
-
-  const cleanAddress = (address: string): string => {
-    // Remove the title completely from the address if it appears
-    let cleanedAddress = address;
-    if (address.includes(title)) {
-      cleanedAddress = address.replace(title, '').trim();
-    }
-    
-    // Remove any leading/trailing commas and spaces
-    cleanedAddress = cleanedAddress.replace(/^[,\s]+|[,\s]+$/g, '');
-    
-    // Extract only the street address and city
-    const parts = cleanedAddress.split(',').map(part => part.trim());
-    if (parts.length >= 2) {
-      // Return only the street and city/postal code
-      return parts.slice(-2).join(', ');
-    }
-    return cleanedAddress;
-  };
-
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      console.log("Original title:", title);
-      console.log("Original address:", address);
+      console.log("Website:", website);
+      console.log("Title:", title);
+      console.log("Address:", address);
       
-      const effectiveWebsite = website || extractWebsiteFromTitle(title);
       let searchQuery;
       
-      if (effectiveWebsite) {
-        searchQuery = `site:${effectiveWebsite}`;
+      if (website) {
+        searchQuery = `site:${website}`;
         console.log("Using website query:", searchQuery);
       } else {
-        const cleanedAddress = cleanAddress(address);
-        console.log("Cleaned address:", cleanedAddress);
-        searchQuery = `${title} ${cleanedAddress}`;
+        searchQuery = `${title} ${address}`;
         console.log("Using title + address query:", searchQuery);
       }
       
@@ -70,7 +36,7 @@ export function useBingImageSearch(title: string, address: string, website?: str
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
-          website: effectiveWebsite,
+          website: website,
           count: 10
         },
       });
