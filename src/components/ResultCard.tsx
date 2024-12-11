@@ -48,7 +48,7 @@ export function ResultCard({ place }: ResultCardProps) {
         {place.id && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Info className="h-4 w-4" />
-            <span>ID: {place.id}</span>
+            <span>Identifiant : {place.id}</span>
           </div>
         )}
       </CardHeader>
@@ -91,7 +91,7 @@ export function ResultCard({ place }: ResultCardProps) {
           <div className="flex items-center gap-2">
             <MapIcon className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
-              {place.latitude}, {place.longitude}
+              Coordonnées : {place.latitude}, {place.longitude}
             </span>
           </div>
         )}
@@ -120,7 +120,7 @@ export function ResultCard({ place }: ResultCardProps) {
         {place.type && (
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">{place.type}</span>
+            <span className="text-sm text-gray-600">Catégorie : {place.type}</span>
           </div>
         )}
 
@@ -129,7 +129,7 @@ export function ResultCard({ place }: ResultCardProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium">Horaires</span>
+              <span className="text-sm font-medium">Horaires d'ouverture</span>
             </div>
             <div className="grid grid-cols-1 gap-1 pl-6">
               {Object.entries(place.openingHours).map(([day, hours]) => (
@@ -190,7 +190,7 @@ export function ResultCard({ place }: ResultCardProps) {
         {/* Description */}
         {place.description && (
           <div className="text-sm text-gray-600">
-            {place.description}
+            <span className="font-medium">Description :</span> {place.description}
           </div>
         )}
       </CardContent>
