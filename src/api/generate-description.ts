@@ -13,17 +13,22 @@ export async function generateDescription(prompt: string) {
       .from('apikeys')
       .select('apikey')
       .eq('provider', 'openai')
-      .single();
+      .limit(1);
 
     if (error) {
+      console.error("Erreur Supabase:", error);
       throw new Error("Erreur lors de la récupération de la clé API");
     }
 
-    if (!apiKeys?.apikey) {
-      throw new Error("Clé API OpenAI non configurée dans la base de données");
+    if (!apiKeys || apiKeys.length === 0) {
+      throw new Error("Aucune clé API OpenAI trouvée dans la base de données");
     }
 
-    const apiKey = apiKeys.apikey;
+    const apiKey = apiKeys[0].apikey;
+
+    if (!apiKey) {
+      throw new Error("La clé API OpenAI est vide dans la base de données");
+    }
 
     // Validate API key format
     if (!apiKey.startsWith('sk-')) {
