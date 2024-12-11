@@ -103,45 +103,18 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       console.log("Place ID:", placeId);
       console.log("Selected image URL:", selectedImage);
 
-      // First, let's verify the place exists
-      const { data: place, error: fetchError } = await supabase
+      const { error: updateError } = await supabase
         .from("places")
-        .select("*")
-        .eq("id", placeId)
-        .single();
+        .update({ 
+          photobing1: selectedImage 
+        })
+        .eq("id", placeId);
 
-      console.log("Place verification result:", { place, fetchError });
-
-      if (fetchError || !place) {
-        throw new Error("Place not found");
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw updateError;
       }
 
-      // Then update the photobing1 field with a simpler query
-      const { data: updateData, error: updateError } = await supabase
-        .from("places")
-        .update({ photobing1: selectedImage })
-        .eq("id", placeId)
-        .select();
-
-      console.log("Update result:", { updateData, updateError });
-
-      if (updateError) throw updateError;
-
-      // Verify the update
-      const { data: verifyData, error: verifyError } = await supabase
-        .from("places")
-        .select("photobing1")
-        .eq("id", placeId)
-        .single();
-
-      console.log("Verification result:", { verifyData, verifyError });
-      
-      if (verifyError) throw verifyError;
-
-      if (verifyData?.photobing1 !== selectedImage) {
-        throw new Error("Update verification failed");
-      }
-      
       toast({
         title: "Image sauvegardée",
         description: "L'image a été sauvegardée avec succès",
