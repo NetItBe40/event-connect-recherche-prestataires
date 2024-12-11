@@ -24,15 +24,15 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Construct the display query based on whether a website is provided
-  const searchQuery = website ? `site:${website}` : `${title}, ${address}`;
+  // Construct the search query based on whether a website is provided
+  const searchQuery = website ? `site:${website}` : `${title} ${address}`;
 
   const searchImages = async () => {
     setIsLoading(true);
     try {
       const response = await supabase.functions.invoke('search-images', {
         body: { 
-          query: website ? `site:${website}` : `${title} ${address}`,
+          query: searchQuery,
           website: website,
           count: 10 // Increased to get more options for sorting
         },
