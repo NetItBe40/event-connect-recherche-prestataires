@@ -2,12 +2,12 @@ import OpenAI from 'openai';
 import { supabase } from '@/lib/supabase';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
   dangerouslyAllowBrowser: true
 });
 
 export async function generateDescription(prompt: string) {
-  if (!process.env.OPENAI_API_KEY) {
+  if (!import.meta.env.VITE_OPENAI_API_KEY) {
     throw new Error("OpenAI API key not configured. Please add your API key in Supabase secrets.");
   }
 
