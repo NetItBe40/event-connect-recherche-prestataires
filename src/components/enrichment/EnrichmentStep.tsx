@@ -1,10 +1,10 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { BasicInfoForm } from "../enrichment/BasicInfoForm";
 import { SocialMediaForm } from "../enrichment/SocialMediaForm";
 import { EmailForm } from "../enrichment/EmailForm";
 import { EnrichmentActions } from "../enrichment/EnrichmentActions";
 import { useEnrichmentData } from "@/hooks/useEnrichmentData";
-import { useState } from "react";
 
 interface EnrichmentStepProps {
   placeId?: string;
@@ -12,6 +12,9 @@ interface EnrichmentStepProps {
     website?: string;
     phone?: string;
     type?: string;
+    openingHours?: {
+      [key: string]: string;
+    };
   };
 }
 
