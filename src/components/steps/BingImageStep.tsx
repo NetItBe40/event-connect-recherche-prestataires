@@ -31,7 +31,7 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     try {
       const response = await supabase.functions.invoke('search-images', {
         body: { 
-          query: `${title} ${address}`,
+          query: website ? `site:${website}` : `${title} ${address}`,
           website: website,
           count: 10 // Increased to get more options for sorting
         },
