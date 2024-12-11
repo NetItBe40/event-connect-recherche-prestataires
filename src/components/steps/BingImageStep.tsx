@@ -26,12 +26,14 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
 
   // Extract website from title if not explicitly provided
   const extractWebsiteFromTitle = (title: string): string | null => {
-    if (title.includes('.fr') || title.includes('.com')) {
-      const words = title.split(' ');
-      for (const word of words) {
-        if (word.includes('.fr') || word.includes('.com')) {
-          return word;
-        }
+    const domains = ['.fr', '.com', '.net', '.org', '.eu'];
+    const words = title.split(' ');
+    
+    for (const word of words) {
+      if (domains.some(domain => word.toLowerCase().includes(domain))) {
+        // Remove any trailing characters after the domain
+        const domainEnd = Math.max(...domains.map(d => word.toLowerCase().indexOf(d) + d.length));
+        return word.substring(0, domainEnd);
       }
     }
     return null;
@@ -43,11 +45,12 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const searchImages = async () => {
     setIsLoading(true);
     try {
+      console.log("Searching images with query:", searchQuery);
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
           website: effectiveWebsite,
-          count: 10 // Increased to get more options for sorting
+          count: 10
         },
       });
 
