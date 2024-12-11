@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Star, MessageCircle, Tag, Info, Clock, MapIcon, Camera, DollarSign, CheckCircle, Building2 } from "lucide-react";
+import { MapPin, Phone, Globe, Star, MessageCircle, Tag, Info, Clock, MapIcon, DollarSign, CheckCircle, Building2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { PlacePhoto } from "./PlacePhoto";
 
 interface Place {
   id?: string;
@@ -53,11 +54,7 @@ export function ResultCard({ place }: ResultCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Photo */}
-        {place.photos && (
-          <div className="w-full h-40 relative rounded-lg overflow-hidden">
-            <img src={place.photos} alt={place.title} className="w-full h-full object-cover" />
-          </div>
-        )}
+        <PlacePhoto photo={place.photos} title={place.title} />
 
         {/* État actuel et prix */}
         <div className="flex items-center justify-between">
