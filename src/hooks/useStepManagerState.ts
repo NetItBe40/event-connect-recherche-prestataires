@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { create } from 'zustand';
 
 interface Place {
   id?: string;
@@ -25,20 +25,26 @@ interface Place {
   description?: string;
 }
 
-export function useStepManagerState() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [results, setResults] = useState<Place[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  return {
-    currentStep,
-    setCurrentStep,
-    selectedPlace,
-    setSelectedPlace,
-    results,
-    setResults,
-    isLoading,
-    setIsLoading,
-  };
+interface StepManagerState {
+  currentStep: number;
+  selectedPlace: Place | null;
+  results: Place[];
+  isLoading: boolean;
+  setCurrentStep: (step: number | ((prev: number) => number)) => void;
+  setSelectedPlace: (place: Place | null) => void;
+  setResults: (results: Place[]) => void;
+  setIsLoading: (isLoading: boolean) => void;
 }
+
+export const useStepManagerState = create<StepManagerState>((set) => ({
+  currentStep: 0,
+  selectedPlace: null,
+  results: [],
+  isLoading: false,
+  setCurrentStep: (step) => set((state) => ({ 
+    currentStep: typeof step === 'function' ? step(state.currentStep) : step 
+  })),
+  setSelectedPlace: (place) => set({ selectedPlace: place }),
+  setResults: (results) => set({ results }),
+  setIsLoading: (isLoading) => set({ isLoading }),
+}));
