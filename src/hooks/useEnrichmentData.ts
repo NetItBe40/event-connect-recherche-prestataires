@@ -25,7 +25,7 @@ interface EnrichmentData {
 export function useEnrichmentData(placeId: string | undefined, initialData: EnrichmentData) {
   console.log("useEnrichmentData - initialData received:", initialData);
   
-  const [data, setData] = useState(() => {
+  const [data, setData] = useState<EnrichmentData>(() => {
     console.log("useEnrichmentData - initializing state with:", initialData);
     return {
       ...initialData,
