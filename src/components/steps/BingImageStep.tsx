@@ -12,8 +12,15 @@ interface BingImageStepProps {
   website?: string;
 }
 
+interface ImageResult {
+  url: string;
+  width: number;
+  height: number;
+  contentSize: string;
+}
+
 export function BingImageStep({ placeId, title, address, website }: BingImageStepProps) {
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -26,19 +33,27 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
         body: { 
           query: `${title} ${address}`,
           website: website,
-          count: 5
+          count: 10 // Increased to get more options for sorting
         },
       });
 
       if (response.error) throw new Error(response.error.message);
       
-      const data = response.data;
-      setPhotos(data.photos);
+      // Sort images to prioritize horizontal format
+      const sortedPhotos = response.data.photos
+        .sort((a: ImageResult, b: ImageResult) => {
+          const aRatio = a.width / a.height;
+          const bRatio = b.width / b.height;
+          return bRatio - aRatio; // Higher ratio = more horizontal
+        })
+        .slice(0, 5); // Keep only top 5 after sorting
 
-      if (placeId && data.photos.length > 0) {
+      setPhotos(sortedPhotos);
+
+      if (placeId && sortedPhotos.length > 0) {
         await supabase
           .from("places")
-          .update({ photos: data.photos })
+          .update({ photos: sortedPhotos.map(p => p.url) })
           .eq("id", placeId);
       }
 
@@ -77,7 +92,12 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       {photos.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
           {photos.map((photo, index) => (
-            <PlacePhoto key={index} photo={photo} title={title} />
+            <div key={index} className="space-y-2">
+              <PlacePhoto photo={photo.url} title={title} />
+              <p className="text-xs text-gray-500">
+                {photo.width}x{photo.height}px • {photo.contentSize}
+              </p>
+            </div>
           ))}
         </div>
       )}

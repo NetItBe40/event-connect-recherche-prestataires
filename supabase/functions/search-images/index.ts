@@ -62,7 +62,12 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-    const photos = data.value.map((item: any) => item.contentUrl)
+    const photos = data.value.map((item: any) => ({
+      url: item.contentUrl,
+      width: item.width,
+      height: item.height,
+      contentSize: item.contentSize || 'Unknown size'
+    }))
 
     console.log('Successfully retrieved', photos.length, 'photos')
     return new Response(
