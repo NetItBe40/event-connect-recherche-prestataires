@@ -17,9 +17,11 @@ export function useBingImageSearch(title: string, address: string, website?: str
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      console.log("Website:", website);
-      console.log("Title:", title);
-      console.log("Address:", address);
+      console.log("Searching images with params:", {
+        title,
+        address,
+        website
+      });
       
       let searchQuery;
       
@@ -27,7 +29,9 @@ export function useBingImageSearch(title: string, address: string, website?: str
         searchQuery = `site:${website}`;
         console.log("Using website query:", searchQuery);
       } else {
-        searchQuery = `${title} ${address}`;
+        // Si pas de site web, on utilise le titre et l'adresse nettoyée
+        const cleanAddress = address.replace(title, '').trim();
+        searchQuery = `${title} ${cleanAddress}`;
         console.log("Using title + address query:", searchQuery);
       }
       

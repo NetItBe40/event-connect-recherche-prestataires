@@ -24,6 +24,7 @@ export function StepContent({
   onSelect 
 }: StepContentProps) {
   console.log("StepContent - selectedPlace:", selectedPlace);
+  console.log("StepContent - website value:", selectedPlace?.website);
 
   switch (currentStep) {
     case 0:
@@ -63,7 +64,6 @@ export function StepContent({
         />
       );
     case 2:
-      console.log("StepContent - website value:", selectedPlace?.website);
       const initialData = {
         website: selectedPlace?.website || "",
         phone: selectedPlace?.phone || "",
