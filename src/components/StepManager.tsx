@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { ResultsList } from "./ResultsList";
-import { SearchForm } from "./SearchForm";
 import { StepProgress } from "./StepProgress";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { useToast } from "./ui/use-toast";
-import { ExistingPlacesList } from "./ExistingPlacesList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { StepContent } from "./steps/StepContent";
+import { PlaceSummary } from "./steps/PlaceSummary";
 
 interface Place {
   id?: string;
@@ -72,7 +69,6 @@ export function StepManager() {
       });
 
       const data = await response.json();
-      console.log("API Response:", data);
 
       if (!response.ok) {
         throw new Error(data.message || "Une erreur est survenue");
@@ -162,53 +158,22 @@ export function StepManager() {
 
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2">
-          {currentStep === 0 && (
-            <Tabs defaultValue="new" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="new">Nouveau prestataire</TabsTrigger>
-                <TabsTrigger value="existing">Prestataire existant</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="new" className="space-y-8">
-                <div className="max-w-2xl mx-auto">
-                  <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-                </div>
-                <ResultsList 
-                  results={results} 
-                  isLoading={isLoading} 
-                  onSelect={handlePlaceSelect}
-                />
-              </TabsContent>
-              
-              <TabsContent value="existing">
-                <ExistingPlacesList onSelect={handlePlaceSelect} />
-              </TabsContent>
-            </Tabs>
-          )}
+          <StepContent 
+            currentStep={currentStep}
+            selectedPlace={selectedPlace}
+            results={results}
+            isLoading={isLoading}
+            onSearch={handleSearch}
+            onSelect={handlePlaceSelect}
+          />
         </div>
 
-        <div className="col-span-1">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Résumé</h2>
-            {selectedPlace ? (
-              <div className="space-y-2">
-                <p><strong>Nom :</strong> {selectedPlace.title}</p>
-                <p><strong>Adresse :</strong> {selectedPlace.address}</p>
-                {selectedPlace.phone && (
-                  <p><strong>Téléphone :</strong> {selectedPlace.phone}</p>
-                )}
-                {selectedPlace.type && (
-                  <p><strong>Type :</strong> {selectedPlace.type}</p>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-500">Aucun lieu sélectionné</p>
-            )}
-          </Card>
+        <div className="col-span-1 space-y-4">
+          <PlaceSummary selectedPlace={selectedPlace} />
 
           <Button
             onClick={handleNextStep}
-            className="w-full mt-4 bg-google-blue hover:bg-google-blue/90"
+            className="w-full bg-google-blue hover:bg-google-blue/90"
             disabled={!selectedPlace && currentStep === 0}
           >
             Étape suivante
