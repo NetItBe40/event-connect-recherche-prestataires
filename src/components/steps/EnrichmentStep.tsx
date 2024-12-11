@@ -33,7 +33,12 @@ interface EnrichmentStepProps {
 }
 
 export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState({
+    ...initialData,
+    website: initialData.website || "",
+    phone: initialData.phone || "",
+    type: initialData.type || "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
