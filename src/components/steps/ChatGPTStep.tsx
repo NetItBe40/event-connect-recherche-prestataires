@@ -37,7 +37,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 5. Expérience et réputation
 6. Informations pratiques`;
 
-      const response = await fetch("/api/generate-description", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-description`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
