@@ -5,8 +5,11 @@ import { StepProgress } from "./StepProgress";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { useToast } from "./ui/use-toast";
+import { ExistingPlacesList } from "./ExistingPlacesList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 interface Place {
+  id?: string;
   title: string;
   address: string;
   rating?: string;
@@ -39,18 +42,7 @@ export function StepManager() {
 
   const handleSearch = async (params: any) => {
     setIsLoading(true);
-    // Vérifier si le lieu existe déjà
-    const existing = await checkExistingPlace(params.query);
-    if (existing) {
-      setExistingPlace(existing);
-      toast({
-        title: "Lieu déjà enregistré",
-        description: "Ce lieu existe déjà dans la base de données",
-      });
-      setIsLoading(false);
-      return;
-    }
-
+    
     let endpoint = "https://api.scrapetable.com/maps/search";
     let apiParams: any = {
       query: params.query,
@@ -69,63 +61,70 @@ export function StepManager() {
       };
     }
 
-    console.log("Sending API request with params:", apiParams);
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": process.env.SCRAPETABLE_API_KEY || "",
+        },
+        body: JSON.stringify(apiParams),
+      });
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": API_KEY,
-      },
-      body: JSON.stringify(apiParams),
-    });
+      const data = await response.json();
+      console.log("API Response:", data);
 
-    const data = await response.json();
-    console.log("API Response:", data);
+      if (!response.ok) {
+        throw new Error(data.message || "Une erreur est survenue");
+      }
 
-    if (!response.ok) {
-      throw new Error(data.message || "Une erreur est survenue");
+      let apiResults = params.placeId ? [data] : (Array.isArray(data) ? data : data.data);
+
+      if (!Array.isArray(apiResults)) {
+        throw new Error("Format de réponse invalide");
+      }
+
+      const transformedResults = apiResults.map(item => ({
+        title: item.name,
+        address: item.full_address,
+        rating: item.rating?.toString(),
+        reviews: item.review_count?.toString(),
+        type: item.types,
+        phone: item.phone_number,
+        website: item.website || undefined,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        timezone: item.timezone,
+        placeId: item.place_id,
+        placeLink: item.place_link,
+        priceLevel: item.price_level,
+        openingHours: {
+          Dimanche: item.Dimanche || item.Sunday,
+          Lundi: item.Lundi || item.Monday,
+          Mardi: item.Mardi || item.Tuesday,
+          Mercredi: item.Mercredi || item.Wednesday,
+          Jeudi: item.Jeudi || item.Thursday,
+          Vendredi: item.Vendredi || item.Friday,
+          Samedi: item.Samedi || item.Saturday,
+        },
+        city: item.city,
+        verified: item.verified,
+        photos: item.photos,
+        state: item.state,
+        description: item.description,
+      }));
+
+      setResults(transformedResults);
+    } catch (error) {
+      console.error("Erreur lors de la recherche:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la recherche",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    let apiResults = params.placeId ? [data] : (Array.isArray(data) ? data : data.data);
-
-    if (!Array.isArray(apiResults)) {
-      throw new Error("Format de réponse invalide");
-    }
-
-    const transformedResults = apiResults.map(item => ({
-      id: item.business_id,
-      title: item.name,
-      address: item.full_address,
-      rating: item.rating?.toString(),
-      reviews: item.review_count?.toString(),
-      type: item.types,
-      phone: item.phone_number,
-      website: item.website || undefined,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      timezone: item.timezone,
-      placeId: item.place_id,
-      placeLink: item.place_link,
-      priceLevel: item.price_level,
-      openingHours: {
-        Dimanche: item.Dimanche || item.Sunday,
-        Lundi: item.Lundi || item.Monday,
-        Mardi: item.Mardi || item.Tuesday,
-        Mercredi: item.Mercredi || item.Wednesday,
-        Jeudi: item.Jeudi || item.Thursday,
-        Vendredi: item.Vendredi || item.Friday,
-        Samedi: item.Samedi || item.Saturday,
-      },
-      city: item.city,
-      verified: item.verified,
-      photos: item.photos,
-      state: item.state,
-      description: item.description,
-    }));
-
-    setResults(transformedResults);
-    setIsLoading(false);
   };
 
   const handlePlaceSelect = (place: Place) => {
@@ -164,18 +163,28 @@ export function StepManager() {
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2">
           {currentStep === 0 && (
-            <>
-              <div className="max-w-2xl mx-auto mb-8">
-                <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-              </div>
-              <ResultsList 
-                results={results} 
-                isLoading={isLoading} 
-                onSelect={handlePlaceSelect}
-              />
-            </>
+            <Tabs defaultValue="new" className="space-y-8">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="new">Nouveau prestataire</TabsTrigger>
+                <TabsTrigger value="existing">Prestataire existant</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="new" className="space-y-8">
+                <div className="max-w-2xl mx-auto">
+                  <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+                </div>
+                <ResultsList 
+                  results={results} 
+                  isLoading={isLoading} 
+                  onSelect={handlePlaceSelect}
+                />
+              </TabsContent>
+              
+              <TabsContent value="existing">
+                <ExistingPlacesList onSelect={handlePlaceSelect} />
+              </TabsContent>
+            </Tabs>
           )}
-          {/* Les autres étapes seront ajoutées ici */}
         </div>
 
         <div className="col-span-1">

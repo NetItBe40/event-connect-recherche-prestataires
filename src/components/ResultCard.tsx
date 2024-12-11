@@ -31,9 +31,10 @@ interface Place {
 
 interface ResultCardProps {
   place: Place;
+  onSelect?: () => void;
 }
 
-export function ResultCard({ place }: ResultCardProps) {
+export function ResultCard({ place, onSelect }: ResultCardProps) {
   const { toast } = useToast();
 
   const handleSelect = async () => {
@@ -71,6 +72,10 @@ export function ResultCard({ place }: ResultCardProps) {
         title: "Succès",
         description: "Le lieu a été sauvegardé avec succès",
       });
+
+      if (onSelect) {
+        onSelect();
+      }
 
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
