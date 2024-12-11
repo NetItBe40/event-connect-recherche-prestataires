@@ -23,33 +23,45 @@ export default function Index() {
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
     try {
+      // Préparer les paramètres en s'assurant que les valeurs numériques sont converties
+      const apiParams = {
+        query: params.query,
+        country: params.country,
+        limit: parseInt(params.limit),
+        ...(params.lat && { lat: parseFloat(params.lat) }),
+        ...(params.lng && { lng: parseFloat(params.lng) }),
+      };
+
+      console.log("Sending API request with params:", apiParams);
+
       const response = await fetch("https://api.scrapetable.com/maps/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "api-key": API_KEY,
         },
-        body: JSON.stringify({
-          query: params.query,
-          country: params.country,
-          limit: params.limit,
-          ...(params.lat && { lat: params.lat }),
-          ...(params.lng && { lng: params.lng }),
-        }),
+        body: JSON.stringify(apiParams),
       });
 
       const data = await response.json();
+      console.log("API Response:", data);
 
       if (!response.ok) {
         throw new Error(data.message || "Une erreur est survenue");
       }
 
-      setResults(data.data || []);
+      if (data.data && Array.isArray(data.data)) {
+        setResults(data.data);
+      } else {
+        console.error("Unexpected API response format:", data);
+        throw new Error("Format de réponse invalide");
+      }
     } catch (error) {
+      console.error("Search error:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la recherche",
       });
       setResults([]);
     } finally {
