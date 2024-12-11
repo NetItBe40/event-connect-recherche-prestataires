@@ -9,13 +9,11 @@ interface BingImageStepProps {
   placeId?: string;
   title: string;
   address: string;
-  website?: string;
 }
 
-export function BingImageStep({ placeId, title, address, website }: BingImageStepProps) {
+export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  console.log("BingImageStep - website prop:", website); // Debug log
-  const { photos, isLoading, searchImages } = useBingImageSearch(title, address, website);
+  const { photos, isLoading, searchImages } = useBingImageSearch(title, address, placeId);
   const { saveImage, isSaving } = useImageSave();
 
   const handleImageSelect = (imageUrl: string) => {
@@ -34,7 +32,7 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
         <h2 className="text-xl font-semibold">Recherche d'images</h2>
         <p className="text-sm text-gray-600">
           Requête Bing : <span className="font-mono bg-gray-100 px-2 py-1 rounded">
-            {website ? `site:${website}` : `${title} ${address}`}
+            {placeId ? "Recherche via le site web" : `${title} ${address}`}
           </span>
         </p>
         <Button 

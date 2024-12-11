@@ -9,7 +9,7 @@ interface ImageResult {
   contentSize: string;
 }
 
-export function useBingImageSearch(title: string, address: string, website?: string) {
+export function useBingImageSearch(title: string, address: string, placeId?: string) {
   const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -17,11 +17,19 @@ export function useBingImageSearch(title: string, address: string, website?: str
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      console.log("Searching images with params:", {
-        title,
-        address,
-        website
-      });
+      // Récupérer d'abord le site web depuis la base de données
+      let website = '';
+      if (placeId) {
+        const { data: placeData, error } = await supabase
+          .from('places')
+          .select('website')
+          .eq('id', placeId)
+          .single();
+
+        if (error) throw error;
+        website = placeData?.website || '';
+        console.log("Retrieved website from DB:", website);
+      }
       
       let searchQuery;
       
@@ -29,7 +37,6 @@ export function useBingImageSearch(title: string, address: string, website?: str
         searchQuery = `site:${website}`;
         console.log("Using website query:", searchQuery);
       } else {
-        // Si pas de site web, on utilise le titre et l'adresse nettoyée
         const cleanAddress = address.replace(title, '').trim();
         searchQuery = `${title} ${cleanAddress}`;
         console.log("Using title + address query:", searchQuery);
