@@ -45,7 +45,10 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         body: JSON.stringify({ prompt }),
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la génération");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erreur lors de la génération");
+      }
 
       const data = await response.json();
       setDescription(data.description);
