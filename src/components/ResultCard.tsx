@@ -39,7 +39,17 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
 
   const handleSelect = async () => {
     try {
-      const { data, error } = await supabase
+      // Validation des champs obligatoires
+      if (!place.title || !place.address) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Le titre et l'adresse sont obligatoires",
+        });
+        return;
+      }
+
+      const { error } = await supabase
         .from('places')
         .insert([
           {
@@ -63,8 +73,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
             state: place.state,
             description: place.description
           }
-        ])
-        .select();
+        ]);
 
       if (error) throw error;
 
