@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { PlacePhoto } from "../PlacePhoto";
+import { Check } from "lucide-react";
 
 interface BingImageStepProps {
   placeId?: string;
@@ -22,16 +23,15 @@ interface ImageResult {
 export function BingImageStep({ placeId, title, address, website }: BingImageStepProps) {
   const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Extract website from title if not explicitly provided
   const extractWebsiteFromTitle = (title: string): string | null => {
     const domains = ['.fr', '.com', '.net', '.org', '.eu'];
     const words = title.split(' ');
     
     for (const word of words) {
       if (domains.some(domain => word.toLowerCase().includes(domain))) {
-        // Remove any trailing characters after the domain
         const domainEnd = Math.max(...domains.map(d => word.toLowerCase().indexOf(d) + d.length));
         return word.substring(0, domainEnd);
       }
@@ -56,23 +56,15 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
 
       if (response.error) throw new Error(response.error.message);
       
-      // Sort images to prioritize horizontal format
       const sortedPhotos = response.data.photos
         .sort((a: ImageResult, b: ImageResult) => {
           const aRatio = a.width / a.height;
           const bRatio = b.width / b.height;
-          return bRatio - aRatio; // Higher ratio = more horizontal
+          return bRatio - aRatio;
         })
-        .slice(0, 5); // Keep only top 5 after sorting
+        .slice(0, 5);
 
       setPhotos(sortedPhotos);
-
-      if (placeId && sortedPhotos.length > 0) {
-        await supabase
-          .from("places")
-          .update({ photos: sortedPhotos.map(p => p.url) })
-          .eq("id", placeId);
-      }
 
       toast({
         title: "Images trouvées",
@@ -87,6 +79,40 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageSelect = async (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    
+    if (!placeId) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de sauvegarder l'image sans identifiant de lieu",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("places")
+        .update({ photobing1: imageUrl })
+        .eq("id", placeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Image sauvegardée",
+        description: "L'image a été sauvegardée avec succès",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de sauvegarder l'image",
+      });
     }
   };
 
@@ -109,8 +135,19 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       {photos.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
           {photos.map((photo, index) => (
-            <div key={index} className="space-y-2">
-              <PlacePhoto photo={photo.url} title={title} />
+            <div key={index} className="space-y-2 relative">
+              <div 
+                className="cursor-pointer relative group"
+                onClick={() => handleImageSelect(photo.url)}
+              >
+                <PlacePhoto photo={photo.url} title={title} />
+                {selectedImage === photo.url && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                    <Check className="w-8 h-8 text-white" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg" />
+              </div>
               <p className="text-xs text-gray-500">
                 {photo.width}x{photo.height}px • {photo.contentSize}
               </p>

@@ -47,6 +47,7 @@ export type Database = {
           longitude: number | null
           opening_hours: Json | null
           phone: string | null
+          photobing1: string | null
           photos: string | null
           pinterest: string | null
           place_id: string | null
@@ -81,6 +82,7 @@ export type Database = {
           longitude?: number | null
           opening_hours?: Json | null
           phone?: string | null
+          photobing1?: string | null
           photos?: string | null
           pinterest?: string | null
           place_id?: string | null
@@ -115,6 +117,7 @@ export type Database = {
           longitude?: number | null
           opening_hours?: Json | null
           phone?: string | null
+          photobing1?: string | null
           photos?: string | null
           pinterest?: string | null
           place_id?: string | null
