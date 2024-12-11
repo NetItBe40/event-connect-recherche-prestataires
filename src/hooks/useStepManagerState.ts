@@ -34,6 +34,7 @@ interface StepManagerState {
   setSelectedPlace: (place: Place | null) => void;
   setResults: (results: Place[]) => void;
   setIsLoading: (isLoading: boolean) => void;
+  clearSelectedPlace: () => void;
 }
 
 export const useStepManagerState = create<StepManagerState>((set) => ({
@@ -44,7 +45,11 @@ export const useStepManagerState = create<StepManagerState>((set) => ({
   setCurrentStep: (step) => set((state) => ({ 
     currentStep: typeof step === 'function' ? step(state.currentStep) : step 
   })),
-  setSelectedPlace: (place) => set({ selectedPlace: place }),
+  setSelectedPlace: (place) => {
+    console.log("Setting selected place:", place);
+    set({ selectedPlace: place });
+  },
   setResults: (results) => set({ results }),
   setIsLoading: (isLoading) => set({ isLoading }),
+  clearSelectedPlace: () => set({ selectedPlace: null }),
 }));

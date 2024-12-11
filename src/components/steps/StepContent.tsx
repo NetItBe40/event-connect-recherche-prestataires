@@ -24,7 +24,14 @@ export function StepContent({
   onSelect 
 }: StepContentProps) {
   console.log("StepContent - selectedPlace:", selectedPlace);
-  console.log("StepContent - website value:", selectedPlace?.website);
+  
+  if (!selectedPlace && currentStep > 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Veuillez d'abord sélectionner un lieu</p>
+      </div>
+    );
+  }
 
   switch (currentStep) {
     case 0:
