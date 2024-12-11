@@ -23,7 +23,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [searchParams, setSearchParams] = useState<SearchParams>({
     query: "",
     country: "fr",
-    limit: "10",
+    limit: "1",
     lat: "",
     lng: "",
   });
