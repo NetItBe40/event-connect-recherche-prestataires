@@ -1,9 +1,11 @@
 import { useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useStepManagerState } from "./useStepManagerState";
 
 export function useStepManagerActions() {
   const { toast } = useToast();
+  const { setSelectedPlace, setCurrentStep } = useStepManagerState();
 
   const handleSearch = useCallback(async (params: { query: string }) => {
     try {
@@ -26,19 +28,20 @@ export function useStepManagerActions() {
   }, [toast]);
 
   const handlePlaceSelect = useCallback((place: any) => {
-    // Handle place selection logic here
-    console.log('Selected place:', place);
-  }, []);
+    setSelectedPlace(place);
+    toast({
+      title: "Succès",
+      description: "Le prestataire a été sélectionné",
+    });
+  }, [setSelectedPlace, toast]);
 
   const handleNextStep = useCallback(() => {
-    // Handle next step logic here
-    console.log('Moving to next step');
-  }, []);
+    setCurrentStep(prev => Math.min(prev + 1, 3));
+  }, [setCurrentStep]);
 
   const handlePreviousStep = useCallback(() => {
-    // Handle previous step logic here
-    console.log('Moving to previous step');
-  }, []);
+    setCurrentStep(prev => Math.max(prev - 1, 0));
+  }, [setCurrentStep]);
 
   return {
     handleSearch,
