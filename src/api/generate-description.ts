@@ -2,17 +2,17 @@ import OpenAI from 'openai';
 import { supabase } from '@/lib/supabase';
 
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
+  apiKey: '', // We'll set this dynamically
   dangerouslyAllowBrowser: true
 });
 
 export async function generateDescription(prompt: string) {
   try {
     // Fetch the OpenAI API key from Supabase
-    const { data: { secret: openaiApiKey } } = await supabase
+    const { data: { secret: openaiApiKey }, error: secretError } = await supabase
       .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
 
-    if (!openaiApiKey) {
+    if (secretError || !openaiApiKey) {
       throw new Error("OpenAI API key not configured. Please add your API key in Supabase secrets.");
     }
 
@@ -20,7 +20,7 @@ export async function generateDescription(prompt: string) {
     openai.apiKey = openaiApiKey;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
