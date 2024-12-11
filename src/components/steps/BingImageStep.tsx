@@ -24,7 +24,8 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const searchQuery = website ? `"site:${website}"` : `${title}, ${address}`;
+  // Construct the display query based on whether a website is provided
+  const searchQuery = website ? `site:${website}` : `${title}, ${address}`;
 
   const searchImages = async () => {
     setIsLoading(true);
