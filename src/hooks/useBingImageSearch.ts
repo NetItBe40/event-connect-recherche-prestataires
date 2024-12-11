@@ -31,7 +31,16 @@ export function useBingImageSearch(title: string, address: string, website?: str
     setIsLoading(true);
     try {
       const effectiveWebsite = website || extractWebsiteFromTitle(title);
-      const searchQuery = effectiveWebsite ? `site:${effectiveWebsite}` : `${title} ${address}`;
+      let searchQuery;
+      
+      if (effectiveWebsite) {
+        searchQuery = `site:${effectiveWebsite}`;
+      } else {
+        // Combine title and address, but remove any duplicate information
+        const addressParts = address.split(',');
+        const cleanAddress = addressParts[addressParts.length - 2] + ',' + addressParts[addressParts.length - 1];
+        searchQuery = `${title} ${cleanAddress}`;
+      }
       
       console.log("Searching images with query:", searchQuery);
       const response = await supabase.functions.invoke('search-images', {
