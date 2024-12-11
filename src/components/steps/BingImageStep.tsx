@@ -109,14 +109,11 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
         throw new Error("Place not found");
       }
 
-      // Then update the photobing1 field
+      // Then update the photobing1 field using PATCH method
       const { data, error } = await supabase
-        .from("places")
-        .update({ 
-          photobing1: imageUrl 
-        })
-        .eq("id", placeId)
-        .select();
+        .from('places')
+        .update({ photobing1: imageUrl })
+        .match({ id: placeId });
 
       console.log("Update response:", { data, error });
 
