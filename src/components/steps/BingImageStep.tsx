@@ -24,8 +24,21 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Construct the search query based on whether a website is provided
-  const searchQuery = website ? `site:${website}` : `${title} ${address}`;
+  // Extract website from title if not explicitly provided
+  const extractWebsiteFromTitle = (title: string): string | null => {
+    if (title.includes('.fr') || title.includes('.com')) {
+      const words = title.split(' ');
+      for (const word of words) {
+        if (word.includes('.fr') || word.includes('.com')) {
+          return word;
+        }
+      }
+    }
+    return null;
+  };
+
+  const effectiveWebsite = website || extractWebsiteFromTitle(title);
+  const searchQuery = effectiveWebsite ? `site:${effectiveWebsite}` : `${title} ${address}`;
 
   const searchImages = async () => {
     setIsLoading(true);
@@ -33,7 +46,7 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
-          website: website,
+          website: effectiveWebsite,
           count: 10 // Increased to get more options for sorting
         },
       });
