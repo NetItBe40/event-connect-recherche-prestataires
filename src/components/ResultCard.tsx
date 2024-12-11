@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MapPin, Phone } from "lucide-react";
 
 interface Place {
   title: string;
@@ -13,23 +13,29 @@ interface Place {
 
 export function ResultCard({ place }: { place: Place }) {
   return (
-    <Card className="p-4 hover:shadow-lg transition-shadow">
-      <div className="space-y-2">
-        <div className="flex items-start justify-between">
-          <h3 className="font-semibold text-lg">{place.title}</h3>
+    <Card className="p-4 hover:shadow-lg transition-shadow h-full">
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-lg line-clamp-2">{place.title}</h3>
           {place.website && (
             <a
               href={place.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-google-blue hover:text-google-blue/80"
+              className="text-google-blue hover:text-google-blue/80 flex-shrink-0"
+              title="Visiter le site web"
             >
               <ExternalLink className="h-5 w-5" />
             </a>
           )}
         </div>
         
-        <p className="text-sm text-gray-600">{place.address}</p>
+        {place.address && (
+          <div className="flex items-start gap-2 text-gray-600">
+            <MapPin className="h-4 w-4 flex-shrink-0 mt-1" />
+            <p className="text-sm">{place.address}</p>
+          </div>
+        )}
         
         {place.rating && (
           <div className="flex items-center gap-2">
@@ -41,11 +47,14 @@ export function ResultCard({ place }: { place: Place }) {
         )}
         
         {place.type && (
-          <p className="text-sm text-gray-500">{place.type}</p>
+          <p className="text-sm text-gray-500 italic">{place.type}</p>
         )}
         
         {place.phone && (
-          <p className="text-sm text-gray-600">{place.phone}</p>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Phone className="h-4 w-4" />
+            <p className="text-sm">{place.phone}</p>
+          </div>
         )}
       </div>
     </Card>
