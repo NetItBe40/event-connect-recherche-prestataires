@@ -1,6 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { corsHeaders } from '../_shared/cors.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 const BING_ENDPOINT = 'https://api.bing.microsoft.com/v7.0/images/search'
 
@@ -24,6 +28,7 @@ serve(async (req) => {
       .single()
 
     if (apiKeyError || !apiKeys?.apikey) {
+      console.error('API Key Error:', apiKeyError)
       throw new Error('Failed to retrieve Bing API key')
     }
 
@@ -39,6 +44,7 @@ serve(async (req) => {
       )
     }
 
+    console.log('Searching images for query:', query)
     const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(query)}&count=${count}&safeSearch=Strict`
 
     const response = await fetch(searchUrl, {
@@ -48,12 +54,14 @@ serve(async (req) => {
     })
 
     if (!response.ok) {
+      console.error('Bing API Error:', response.status, await response.text())
       throw new Error(`Bing API responded with status ${response.status}`)
     }
 
     const data = await response.json()
     const photos = data.value.map((item: any) => item.contentUrl)
 
+    console.log('Successfully retrieved', photos.length, 'photos')
     return new Response(
       JSON.stringify({ photos }),
       {
