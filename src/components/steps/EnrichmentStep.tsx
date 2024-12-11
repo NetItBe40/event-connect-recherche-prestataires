@@ -31,7 +31,6 @@ interface EnrichmentStepProps {
 
 export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
   console.log("EnrichmentStep - initialData:", initialData);
-  console.log("EnrichmentStep - website value:", initialData.website);
 
   const {
     data,
@@ -39,12 +38,7 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
     handleChange,
     handleFetchSocials,
     handleSave
-  } = useEnrichmentData(placeId, {
-    ...initialData,
-    website: initialData.website || "",
-    phone: initialData.phone || "",
-    type: initialData.type || "",
-  });
+  } = useEnrichmentData(placeId, initialData);
 
   console.log("EnrichmentStep - data after hook:", data);
 

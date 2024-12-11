@@ -23,6 +23,8 @@ export function StepContent({
   onSearch, 
   onSelect 
 }: StepContentProps) {
+  console.log("StepContent - selectedPlace:", selectedPlace);
+
   switch (currentStep) {
     case 0:
       return (
@@ -61,6 +63,7 @@ export function StepContent({
         />
       );
     case 2:
+      console.log("StepContent - website value:", selectedPlace?.website);
       const initialData = {
         website: selectedPlace?.website || "",
         phone: selectedPlace?.phone || "",

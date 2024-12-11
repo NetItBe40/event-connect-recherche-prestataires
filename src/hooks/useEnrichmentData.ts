@@ -28,10 +28,21 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
   const [data, setData] = useState<EnrichmentData>(() => {
     console.log("useEnrichmentData - initializing state with:", initialData);
     return {
-      ...initialData,
       website: initialData.website || "",
       phone: initialData.phone || "",
       type: initialData.type || "",
+      openingHours: initialData.openingHours || {},
+      facebook: initialData.facebook || "",
+      instagram: initialData.instagram || "",
+      tiktok: initialData.tiktok || "",
+      snapchat: initialData.snapchat || "",
+      twitter: initialData.twitter || "",
+      linkedin: initialData.linkedin || "",
+      github: initialData.github || "",
+      youtube: initialData.youtube || "",
+      pinterest: initialData.pinterest || "",
+      email_1: initialData.email_1 || "",
+      email_2: initialData.email_2 || "",
     };
   });
   
