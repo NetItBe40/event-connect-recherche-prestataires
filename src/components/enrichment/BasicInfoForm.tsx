@@ -12,7 +12,7 @@ interface BasicInfoFormProps {
   showOnlyWebsite?: boolean;
 }
 
-export function BasicInfoForm({ data, onChange, isLoading, showOnlyWebsite }: BasicInfoFormProps) {
+export function BasicInfoForm({ data, onChange, isLoading, showOnlyWebsite = false }: BasicInfoFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
