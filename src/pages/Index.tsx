@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { SearchForm, type SearchParams } from "@/components/SearchForm";
 import { ResultsList } from "@/components/ResultsList";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface Place {
   id?: string;
@@ -69,10 +72,47 @@ const API_KEY = "333560f1da2bc2c0fd39bfd3f4e1567b9b208d9ace5945433a3e1a75a523265
 export default function Index() {
   const [results, setResults] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [existingPlace, setExistingPlace] = useState<Place | null>(null);
   const { toast } = useToast();
+
+  const checkExistingPlace = async (query: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('places')
+        .select('*')
+        .ilike('title', `%${query}%`)
+        .single();
+
+      if (error) {
+        if (error.code !== 'PGRST116') { // Code when no match is found
+          console.error('Erreur lors de la vérification:', error);
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erreur lors de la vérification:', error);
+      return null;
+    }
+  };
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
+    setExistingPlace(null);
+
+    // Vérifier si le lieu existe déjà
+    const existing = await checkExistingPlace(params.query);
+    if (existing) {
+      setExistingPlace(existing);
+      toast({
+        title: "Lieu déjà enregistré",
+        description: "Ce lieu existe déjà dans la base de données",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       let endpoint = "https://api.scrapetable.com/maps/search";
       let apiParams: any = {
@@ -185,6 +225,22 @@ export default function Index() {
       <div className="max-w-2xl mx-auto">
         <SearchForm onSearch={handleSearch} isLoading={isLoading} />
       </div>
+
+      {existingPlace && (
+        <Alert className="max-w-2xl mx-auto">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Lieu déjà enregistré</AlertTitle>
+          <AlertDescription>
+            <div className="mt-2 space-y-2">
+              <p><strong>Nom :</strong> {existingPlace.title}</p>
+              <p><strong>Adresse :</strong> {existingPlace.address}</p>
+              {existingPlace.phone && <p><strong>Téléphone :</strong> {existingPlace.phone}</p>}
+              {existingPlace.type && <p><strong>Type :</strong> {existingPlace.type}</p>}
+              {existingPlace.rating && <p><strong>Note :</strong> {existingPlace.rating}/5</p>}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <ResultsList results={results} isLoading={isLoading} />
     </div>
