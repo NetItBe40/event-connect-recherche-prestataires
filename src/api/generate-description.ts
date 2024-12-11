@@ -8,43 +8,32 @@ const openai = new OpenAI({
 
 export async function generateDescription(prompt: string) {
   try {
-    // Fetch API key from Supabase
+    console.log("Début de la récupération de la clé API");
+    
+    // Fetch API key from Supabase with better error handling
     const { data: apiKeys, error } = await supabase
       .from('apikeys')
       .select('apikey')
       .eq('provider', 'openai')
-      .limit(1);
+      .single(); // Use single() instead of limit(1) to get the object directly
 
     if (error) {
       console.error("Erreur Supabase:", error);
       throw new Error("Erreur lors de la récupération de la clé API");
     }
 
-    if (!apiKeys || apiKeys.length === 0) {
-      console.error("Aucune clé API trouvée pour OpenAI");
+    if (!apiKeys || !apiKeys.apikey) {
+      console.error("Aucune clé API ou clé vide trouvée");
       throw new Error("Aucune clé API OpenAI trouvée dans la base de données");
-    }
-
-    const apiKey = apiKeys[0].apikey;
-
-    if (!apiKey) {
-      console.error("La clé API est vide");
-      throw new Error("La clé API OpenAI est vide dans la base de données");
-    }
-
-    // Validate API key format
-    if (!apiKey.startsWith('sk-')) {
-      console.error("Format de clé API invalide");
-      throw new Error("Format de clé API invalide. La clé doit commencer par 'sk-'");
     }
 
     console.log("Clé API OpenAI récupérée avec succès");
     
     // Update the API key
-    openai.apiKey = apiKey;
+    openai.apiKey = apiKeys.apikey;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4", // Fixed typo here
+      model: "gpt-4",
       messages: [
         {
           role: "system",
@@ -61,14 +50,13 @@ export async function generateDescription(prompt: string) {
 
     return completion.choices[0].message.content;
   } catch (error: any) {
+    console.error("Erreur lors de la génération de la description:", error);
+    
     // Handle specific API errors
     if (error?.status === 401) {
-      console.error("Erreur d'authentification OpenAI:", error);
       throw new Error("Clé API invalide. Veuillez vérifier votre clé API OpenAI.");
     }
     
-    // Re-throw the error with a more user-friendly message
-    console.error("Erreur lors de la génération de la description:", error);
     throw error;
   }
 }
