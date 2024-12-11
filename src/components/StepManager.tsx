@@ -63,7 +63,7 @@ export function StepManager() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "api-key": process.env.SCRAPETABLE_API_KEY || "",
+          "api-key": import.meta.env.VITE_SCRAPETABLE_API_KEY || "",
         },
         body: JSON.stringify(apiParams),
       });
