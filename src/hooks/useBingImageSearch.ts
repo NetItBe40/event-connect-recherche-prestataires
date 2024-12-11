@@ -28,13 +28,19 @@ export function useBingImageSearch(title: string, address: string, website?: str
   };
 
   const cleanAddress = (address: string): string => {
-    // Remove the title if it appears at the start of the address
-    let cleanedAddress = address.replace(title, '').trim();
-    // Remove any leading commas and spaces
-    cleanedAddress = cleanedAddress.replace(/^[,\s]+/, '');
-    // Split by commas and take the last two parts (city and postal code)
+    // Remove the title completely from the address if it appears
+    let cleanedAddress = address;
+    if (address.includes(title)) {
+      cleanedAddress = address.replace(title, '').trim();
+    }
+    
+    // Remove any leading/trailing commas and spaces
+    cleanedAddress = cleanedAddress.replace(/^[,\s]+|[,\s]+$/g, '');
+    
+    // Extract only the street address and city
     const parts = cleanedAddress.split(',').map(part => part.trim());
     if (parts.length >= 2) {
+      // Return only the street and city/postal code
       return parts.slice(-2).join(', ');
     }
     return cleanedAddress;
@@ -43,6 +49,9 @@ export function useBingImageSearch(title: string, address: string, website?: str
   const searchImages = async () => {
     setIsLoading(true);
     try {
+      console.log("Original title:", title);
+      console.log("Original address:", address);
+      
       const effectiveWebsite = website || extractWebsiteFromTitle(title);
       let searchQuery;
       
@@ -51,11 +60,13 @@ export function useBingImageSearch(title: string, address: string, website?: str
         console.log("Using website query:", searchQuery);
       } else {
         const cleanedAddress = cleanAddress(address);
+        console.log("Cleaned address:", cleanedAddress);
         searchQuery = `${title} ${cleanedAddress}`;
         console.log("Using title + address query:", searchQuery);
       }
       
       console.log("Final search query:", searchQuery);
+      
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
