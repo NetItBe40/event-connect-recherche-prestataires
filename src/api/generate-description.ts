@@ -32,7 +32,7 @@ export async function generateDescription(prompt: string) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o", // Fixed model name
+        model: "gpt-4o-mini", // Using the correct model name
         messages: [
           {
             role: "system",
