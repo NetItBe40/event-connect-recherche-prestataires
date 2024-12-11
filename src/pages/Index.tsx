@@ -79,6 +79,7 @@ export default function Index() {
         query: params.query,
         country: params.country,
         limit: parseInt(params.limit),
+        lang: "french", // Ajout du paramètre de langue
         ...(params.lat && { lat: parseFloat(params.lat) }),
         ...(params.lng && { lng: parseFloat(params.lng) }),
       };
@@ -87,6 +88,7 @@ export default function Index() {
         endpoint = "https://api.scrapetable.com/maps/place";
         apiParams = {
           place_id: params.placeId,
+          lang: "french", // Ajout du paramètre de langue aussi pour les détails d'un lieu
         };
       }
 
