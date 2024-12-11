@@ -36,69 +36,102 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          email_1: string | null
+          email_2: string | null
+          facebook: string | null
+          github: string | null
           id: string
+          instagram: string | null
           latitude: number | null
+          linkedin: string | null
           longitude: number | null
           opening_hours: Json | null
           phone: string | null
           photos: string | null
+          pinterest: string | null
           place_id: string | null
           place_link: string | null
           price_level: string | null
           rating: string | null
           reviews: string | null
+          snapchat: string | null
           state: string | null
+          tiktok: string | null
           timezone: string | null
           title: string
+          twitter: string | null
           type: string | null
           verified: boolean | null
           website: string | null
+          youtube: string | null
         }
         Insert: {
           address: string
           city?: string | null
           created_at?: string
           description?: string | null
+          email_1?: string | null
+          email_2?: string | null
+          facebook?: string | null
+          github?: string | null
           id?: string
+          instagram?: string | null
           latitude?: number | null
+          linkedin?: string | null
           longitude?: number | null
           opening_hours?: Json | null
           phone?: string | null
           photos?: string | null
+          pinterest?: string | null
           place_id?: string | null
           place_link?: string | null
           price_level?: string | null
           rating?: string | null
           reviews?: string | null
+          snapchat?: string | null
           state?: string | null
+          tiktok?: string | null
           timezone?: string | null
           title: string
+          twitter?: string | null
           type?: string | null
           verified?: boolean | null
           website?: string | null
+          youtube?: string | null
         }
         Update: {
           address?: string
           city?: string | null
           created_at?: string
           description?: string | null
+          email_1?: string | null
+          email_2?: string | null
+          facebook?: string | null
+          github?: string | null
           id?: string
+          instagram?: string | null
           latitude?: number | null
+          linkedin?: string | null
           longitude?: number | null
           opening_hours?: Json | null
           phone?: string | null
           photos?: string | null
+          pinterest?: string | null
           place_id?: string | null
           place_link?: string | null
           price_level?: string | null
           rating?: string | null
           reviews?: string | null
+          snapchat?: string | null
           state?: string | null
+          tiktok?: string | null
           timezone?: string | null
           title?: string
+          twitter?: string | null
           type?: string | null
           verified?: boolean | null
           website?: string | null
+          youtube?: string | null
         }
         Relationships: []
       }

@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface EnrichmentStepProps {
   placeId?: string;
@@ -16,6 +17,17 @@ interface EnrichmentStepProps {
     openingHours?: {
       [key: string]: string;
     };
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+    snapchat?: string;
+    twitter?: string;
+    linkedin?: string;
+    github?: string;
+    youtube?: string;
+    pinterest?: string;
+    email_1?: string;
+    email_2?: string;
   };
 }
 
@@ -49,6 +61,17 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
           phone: data.phone,
           type: data.type,
           opening_hours: data.openingHours,
+          facebook: data.facebook,
+          instagram: data.instagram,
+          tiktok: data.tiktok,
+          snapchat: data.snapchat,
+          twitter: data.twitter,
+          linkedin: data.linkedin,
+          github: data.github,
+          youtube: data.youtube,
+          pinterest: data.pinterest,
+          email_1: data.email_1,
+          email_2: data.email_2,
         })
         .eq("id", placeId);
 
@@ -109,6 +132,22 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
 
       const result = await response.json();
       console.log("Résultats de l'API Email Socials:", result);
+
+      // Mise à jour des données avec les résultats
+      if (result && result.length > 0) {
+        const socialData = result[0];
+        setData(prev => ({
+          ...prev,
+          facebook: socialData.facebook || prev.facebook,
+          instagram: socialData.instagram || prev.instagram,
+          twitter: socialData.twitter || prev.twitter,
+          linkedin: socialData.linkedin || prev.linkedin,
+          youtube: socialData.youtube || prev.youtube,
+          // ... autres réseaux sociaux si disponibles
+          email_1: socialData.emails?.[0] || prev.email_1,
+          email_2: socialData.emails?.[1] || prev.email_2,
+        }));
+      }
 
       toast({
         title: "Succès",
@@ -171,6 +210,118 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
             onChange={(e) => handleChange("type", e.target.value)}
             placeholder="Restaurant, Hôtel..."
           />
+        </div>
+
+        <Separator className="my-4" />
+
+        <h3 className="text-lg font-semibold">Réseaux sociaux</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="facebook">Facebook</Label>
+            <Input
+              id="facebook"
+              value={data.facebook || ""}
+              onChange={(e) => handleChange("facebook", e.target.value)}
+              placeholder="URL Facebook"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="instagram">Instagram</Label>
+            <Input
+              id="instagram"
+              value={data.instagram || ""}
+              onChange={(e) => handleChange("instagram", e.target.value)}
+              placeholder="URL Instagram"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tiktok">TikTok</Label>
+            <Input
+              id="tiktok"
+              value={data.tiktok || ""}
+              onChange={(e) => handleChange("tiktok", e.target.value)}
+              placeholder="URL TikTok"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="snapchat">Snapchat</Label>
+            <Input
+              id="snapchat"
+              value={data.snapchat || ""}
+              onChange={(e) => handleChange("snapchat", e.target.value)}
+              placeholder="URL Snapchat"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="twitter">Twitter</Label>
+            <Input
+              id="twitter"
+              value={data.twitter || ""}
+              onChange={(e) => handleChange("twitter", e.target.value)}
+              placeholder="URL Twitter"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedin">LinkedIn</Label>
+            <Input
+              id="linkedin"
+              value={data.linkedin || ""}
+              onChange={(e) => handleChange("linkedin", e.target.value)}
+              placeholder="URL LinkedIn"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="youtube">YouTube</Label>
+            <Input
+              id="youtube"
+              value={data.youtube || ""}
+              onChange={(e) => handleChange("youtube", e.target.value)}
+              placeholder="URL YouTube"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="pinterest">Pinterest</Label>
+            <Input
+              id="pinterest"
+              value={data.pinterest || ""}
+              onChange={(e) => handleChange("pinterest", e.target.value)}
+              placeholder="URL Pinterest"
+            />
+          </div>
+        </div>
+
+        <Separator className="my-4" />
+
+        <h3 className="text-lg font-semibold">Emails</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="email_1">Email principal</Label>
+            <Input
+              id="email_1"
+              value={data.email_1 || ""}
+              onChange={(e) => handleChange("email_1", e.target.value)}
+              placeholder="email@example.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email_2">Email secondaire</Label>
+            <Input
+              id="email_2"
+              value={data.email_2 || ""}
+              onChange={(e) => handleChange("email_2", e.target.value)}
+              placeholder="email@example.com"
+            />
+          </div>
         </div>
 
         <Button onClick={handleSave} className="w-full">

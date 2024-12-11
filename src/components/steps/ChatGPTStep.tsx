@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { generateDescription } from "@/api/generate-description";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface ChatGPTStepProps {
   placeId?: string;
@@ -14,10 +15,11 @@ interface ChatGPTStepProps {
   type?: string;
   rating?: string;
   phone?: string;
+  description?: string;
 }
 
-export function ChatGPTStep({ placeId, title, address, type, rating, phone }: ChatGPTStepProps) {
-  const [description, setDescription] = useState("");
+export function ChatGPTStep({ placeId, title, address, type, rating, phone, description: initialDescription }: ChatGPTStepProps) {
+  const [description, setDescription] = useState(initialDescription || "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -45,15 +47,56 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       const generatedDescription = await generateDescription(prompt);
       setDescription(generatedDescription);
 
+      if (placeId) {
+        const { error: updateError } = await supabase
+          .from('places')
+          .update({ description: generatedDescription })
+          .eq('id', placeId);
+
+        if (updateError) throw updateError;
+      }
+
       toast({
         title: "Description générée",
-        description: "La description a été générée avec succès",
+        description: "La description a été générée et sauvegardée avec succès",
       });
     } catch (error) {
       console.error("Erreur:", error);
       setError("Une erreur est survenue lors de la génération de la description. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveDescription = async () => {
+    if (!placeId) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de sauvegarder la description",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('places')
+        .update({ description })
+        .eq('id', placeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "La description a été sauvegardée",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de sauvegarder la description",
+      });
     }
   };
 
@@ -83,6 +126,15 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           placeholder="La description générée apparaîtra ici..."
           className="h-64"
         />
+
+        <Button 
+          onClick={handleSaveDescription}
+          disabled={!description}
+          variant="outline"
+          className="w-full"
+        >
+          Sauvegarder les modifications
+        </Button>
       </div>
     </Card>
   );

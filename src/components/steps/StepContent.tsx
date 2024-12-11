@@ -57,6 +57,7 @@ export function StepContent({
           type={selectedPlace?.type}
           rating={selectedPlace?.rating}
           phone={selectedPlace?.phone}
+          description={selectedPlace?.description}
         />
       );
     case 2:
@@ -68,6 +69,17 @@ export function StepContent({
             phone: selectedPlace?.phone,
             type: selectedPlace?.type,
             openingHours: selectedPlace?.openingHours,
+            facebook: selectedPlace?.facebook,
+            instagram: selectedPlace?.instagram,
+            tiktok: selectedPlace?.tiktok,
+            snapchat: selectedPlace?.snapchat,
+            twitter: selectedPlace?.twitter,
+            linkedin: selectedPlace?.linkedin,
+            github: selectedPlace?.github,
+            youtube: selectedPlace?.youtube,
+            pinterest: selectedPlace?.pinterest,
+            email_1: selectedPlace?.email_1,
+            email_2: selectedPlace?.email_2,
           }}
         />
       );
