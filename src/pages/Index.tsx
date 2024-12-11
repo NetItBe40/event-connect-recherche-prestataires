@@ -12,6 +12,20 @@ interface Place {
   type?: string;
   phone?: string;
   website?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  placeId?: string;
+  placeLink?: string;
+  priceLevel?: string;
+  openingHours?: {
+    [key: string]: string;
+  };
+  city?: string;
+  verified?: boolean;
+  photos?: string;
+  state?: string;
+  description?: string;
 }
 
 interface APIResponse {
@@ -20,9 +34,34 @@ interface APIResponse {
   full_address: string;
   rating: number;
   review_count: number;
-  types: string[];
+  types: string;
   phone_number: string;
   website: string | null;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_id: string;
+  place_link: string;
+  price_level: string;
+  Sunday: string;
+  Monday: string;
+  Tuesday: string;
+  Wednesday: string;
+  Thursday: string;
+  Friday: string;
+  Saturday: string;
+  Mercredi: string;
+  Jeudi: string;
+  Vendredi: string;
+  Samedi: string;
+  Dimanche: string;
+  Lundi: string;
+  Mardi: string;
+  city: string;
+  verified: boolean;
+  photos: string;
+  state: string;
+  description: string;
 }
 
 const API_KEY = "333560f1da2bc2c0fd39bfd3f4e1567b9b208d9ace5945433a3e1a75a5232657";
@@ -44,7 +83,6 @@ export default function Index() {
         ...(params.lng && { lng: parseFloat(params.lng) }),
       };
 
-      // Si un placeId est fourni, utiliser l'endpoint details à la place
       if (params.placeId) {
         endpoint = "https://api.scrapetable.com/maps/place";
         apiParams = {
@@ -92,9 +130,29 @@ export default function Index() {
         address: item.full_address,
         rating: item.rating?.toString(),
         reviews: item.review_count?.toString(),
-        type: item.types?.join(", "),
+        type: item.types,
         phone: item.phone_number,
         website: item.website || undefined,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        timezone: item.timezone,
+        placeId: item.place_id,
+        placeLink: item.place_link,
+        priceLevel: item.price_level,
+        openingHours: {
+          Dimanche: item.Dimanche || item.Sunday,
+          Lundi: item.Lundi || item.Monday,
+          Mardi: item.Mardi || item.Tuesday,
+          Mercredi: item.Mercredi || item.Wednesday,
+          Jeudi: item.Jeudi || item.Thursday,
+          Vendredi: item.Vendredi || item.Friday,
+          Samedi: item.Samedi || item.Saturday,
+        },
+        city: item.city,
+        verified: item.verified,
+        photos: item.photos,
+        state: item.state,
+        description: item.description,
       }));
 
       setResults(transformedResults);
