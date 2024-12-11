@@ -78,6 +78,7 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
           onSave={handleSave}
           isLoading={isLoading}
           hasWebsite={!!data.website}
+          showSaveButton={true}
         />
       </div>
     </Card>
