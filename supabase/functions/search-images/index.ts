@@ -32,7 +32,7 @@ serve(async (req) => {
       throw new Error('Failed to retrieve Bing API key')
     }
 
-    const { query, count = 5 } = await req.json()
+    const { query, website, count = 5 } = await req.json()
 
     if (!query) {
       return new Response(
@@ -44,8 +44,11 @@ serve(async (req) => {
       )
     }
 
-    console.log('Searching images for query:', query)
-    const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(query)}&count=${count}&safeSearch=Strict`
+    // Construire la requête avec site: si un site web est fourni
+    const searchQuery = website ? `site:${website} ${query}` : query
+    console.log('Searching images with query:', searchQuery)
+    
+    const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(searchQuery)}&count=${count}&safeSearch=Strict`
 
     const response = await fetch(searchUrl, {
       headers: {

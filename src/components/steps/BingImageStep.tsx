@@ -20,21 +20,17 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/functions/search-images`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ 
+      const response = await supabase.functions.invoke('search-images', {
+        body: { 
           query: `${title} ${address}`,
+          website: website,
           count: 5
-        }),
+        },
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la recherche");
-
-      const data = await response.json();
+      if (response.error) throw new Error(response.error.message);
+      
+      const data = response.data;
       setPhotos(data.photos);
 
       if (placeId && data.photos.length > 0) {
