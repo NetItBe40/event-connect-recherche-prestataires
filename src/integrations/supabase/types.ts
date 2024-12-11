@@ -86,7 +86,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_secret: {
+        Args: {
+          secret_name: string
+        }
+        Returns: {
+          secret: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
