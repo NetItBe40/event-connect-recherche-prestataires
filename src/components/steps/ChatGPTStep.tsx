@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { generateDescription } from "@/api/generate-description";
 
 interface ChatGPTStepProps {
   placeId?: string;
@@ -19,7 +20,7 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone }: Ch
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const generateDescription = async () => {
+  const handleGenerateDescription = async () => {
     setIsLoading(true);
     try {
       const prompt = `Rédige une description complète et professionnelle pour un répertoire en ligne de prestataires spécialisés dans l'organisation d'événements. Inclut les informations suivantes :
@@ -37,26 +38,13 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 5. Expérience et réputation
 6. Informations pratiques`;
 
-      const response = await fetch("/api/generate-description", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Erreur lors de la génération");
-      }
-
-      const data = await response.json();
-      setDescription(data.description);
+      const generatedDescription = await generateDescription(prompt);
+      setDescription(generatedDescription);
 
       if (placeId) {
         await supabase
           .from("places")
-          .update({ description: data.description })
+          .update({ description: generatedDescription })
           .eq("id", placeId);
       }
 
@@ -81,7 +69,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Génération de la description</h2>
         <Button 
-          onClick={generateDescription} 
+          onClick={handleGenerateDescription} 
           disabled={isLoading}
           className="w-full bg-google-blue hover:bg-google-blue/90"
         >
