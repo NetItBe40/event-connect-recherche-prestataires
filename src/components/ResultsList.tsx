@@ -13,9 +13,10 @@ interface Place {
 interface ResultsListProps {
   results: Place[];
   isLoading: boolean;
+  onSelect?: (place: Place) => void;
 }
 
-export function ResultsList({ results, isLoading }: ResultsListProps) {
+export function ResultsList({ results, isLoading, onSelect }: ResultsListProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -40,7 +41,11 @@ export function ResultsList({ results, isLoading }: ResultsListProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {results.map((place, index) => (
-        <ResultCard key={index} place={place} />
+        <ResultCard 
+          key={index} 
+          place={place} 
+          onSelect={() => onSelect?.(place)}
+        />
       ))}
     </div>
   );
