@@ -34,7 +34,8 @@ export default function Index() {
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
     try {
-      const apiParams = {
+      let endpoint = "https://api.scrapetable.com/maps/search";
+      let apiParams: any = {
         query: params.query,
         country: params.country,
         limit: parseInt(params.limit),
@@ -42,9 +43,17 @@ export default function Index() {
         ...(params.lng && { lng: parseFloat(params.lng) }),
       };
 
+      // Si un placeId est fourni, utiliser l'endpoint details à la place
+      if (params.placeId) {
+        endpoint = "https://api.scrapetable.com/maps/place";
+        apiParams = {
+          place_id: params.placeId,
+        };
+      }
+
       console.log("Sending API request with params:", apiParams);
 
-      const response = await fetch("https://api.scrapetable.com/maps/search", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,11 +70,23 @@ export default function Index() {
       }
 
       // Vérification et transformation des données
-      if (!data || (!Array.isArray(data) && !Array.isArray(data.data))) {
+      if (!data) {
         throw new Error("Format de réponse invalide");
       }
 
-      const apiResults = Array.isArray(data) ? data : data.data;
+      let apiResults: APIResponse[];
+      
+      if (params.placeId) {
+        // Pour l'endpoint details, la réponse est un objet unique
+        apiResults = [data];
+      } else {
+        // Pour l'endpoint search, la réponse est un tableau
+        apiResults = Array.isArray(data) ? data : data.data;
+      }
+
+      if (!Array.isArray(apiResults)) {
+        throw new Error("Format de réponse invalide");
+      }
       
       // Transformation des données de l'API vers notre format Place
       const transformedResults: Place[] = apiResults.map((item: APIResponse) => ({

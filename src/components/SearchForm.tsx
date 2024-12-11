@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface SearchFormProps {
   onSearch: (params: SearchParams) => void;
@@ -15,32 +16,74 @@ export interface SearchParams {
   limit: string;
   lat?: string;
   lng?: string;
+  placeId?: string;
 }
 
 export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [searchParams, setSearchParams] = useState<SearchParams>({
     query: "",
-    country: "us",
+    country: "fr",
     limit: "10",
     lat: "",
     lng: "",
   });
+  const [googleUrl, setGoogleUrl] = useState("");
+
+  const extractPlaceId = (url: string): string | null => {
+    try {
+      const match = url.match(/place\/.*?\/([\w\d:]+)!/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      return null;
+    } catch (error) {
+      console.error("Error extracting place ID:", error);
+      return null;
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(searchParams);
+    const params = { ...searchParams };
+    
+    if (googleUrl) {
+      const placeId = extractPlaceId(googleUrl);
+      if (placeId) {
+        params.placeId = placeId;
+      }
+    }
+    
+    onSearch(params);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    if (name === "googleUrl") {
+      setGoogleUrl(value);
+    } else {
+      setSearchParams((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="googleUrl">URL Google Maps (optionnel)</Label>
+          <Input
+            id="googleUrl"
+            name="googleUrl"
+            value={googleUrl}
+            onChange={handleChange}
+            placeholder="https://www.google.fr/maps/place/..."
+          />
+        </div>
+
+        <Separator className="my-4" />
+
         <div className="space-y-2">
           <Label htmlFor="query">Recherche</Label>
           <Input
@@ -49,7 +92,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             value={searchParams.query}
             onChange={handleChange}
             placeholder="Ex: restaurants, hotels..."
-            required
+            required={!googleUrl}
           />
         </div>
 
@@ -62,7 +105,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
               value={searchParams.country}
               onChange={handleChange}
               placeholder="us, fr, etc."
-              required
+              required={!googleUrl}
             />
           </div>
           <div className="space-y-2">
@@ -75,7 +118,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
               onChange={handleChange}
               min="1"
               max="20"
-              required
+              required={!googleUrl}
             />
           </div>
         </div>
