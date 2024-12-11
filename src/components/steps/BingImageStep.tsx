@@ -86,8 +86,6 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     console.log("Selecting image:", imageUrl);
     console.log("Place ID:", placeId);
     
-    setSelectedImage(imageUrl);
-    
     if (!placeId) {
       toast({
         variant: "destructive",
@@ -98,9 +96,25 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     }
 
     try {
+      // First, let's verify the place exists
+      const { data: place, error: fetchError } = await supabase
+        .from("places")
+        .select("id")
+        .eq("id", placeId)
+        .single();
+
+      console.log("Place verification:", { place, fetchError });
+
+      if (fetchError || !place) {
+        throw new Error("Place not found");
+      }
+
+      // Then update the photobing1 field
       const { data, error } = await supabase
         .from("places")
-        .update({ photobing1: imageUrl })
+        .update({ 
+          photobing1: imageUrl 
+        })
         .eq("id", placeId)
         .select();
 
@@ -108,6 +122,9 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
 
       if (error) throw error;
 
+      // If successful, update the UI
+      setSelectedImage(imageUrl);
+      
       toast({
         title: "Image sauvegardée",
         description: "L'image a été sauvegardée avec succès",
