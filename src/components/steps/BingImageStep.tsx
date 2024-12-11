@@ -20,10 +20,11 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/search-images", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/functions/search-images`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ 
           query: `${title} ${address}`,
