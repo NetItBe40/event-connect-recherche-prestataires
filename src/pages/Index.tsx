@@ -13,6 +13,17 @@ interface Place {
   website?: string;
 }
 
+interface APIResponse {
+  business_id: string;
+  name: string;
+  full_address: string;
+  rating: number;
+  review_count: number;
+  types: string[];
+  phone_number: string;
+  website: string | null;
+}
+
 const API_KEY = "333560f1da2bc2c0fd39bfd3f4e1567b9b208d9ace5945433a3e1a75a5232657";
 
 export default function Index() {
@@ -49,20 +60,25 @@ export default function Index() {
         throw new Error(data.message || "Une erreur est survenue");
       }
 
-      // Vérification plus détaillée de la structure de la réponse
-      if (!data) {
-        throw new Error("Réponse vide de l'API");
+      // Vérification et transformation des données
+      if (!data || (!Array.isArray(data) && !Array.isArray(data.data))) {
+        throw new Error("Format de réponse invalide");
       }
 
-      // L'API peut retourner les résultats directement ou dans un objet avec une propriété data
-      const results = Array.isArray(data) ? data : data.data;
+      const apiResults = Array.isArray(data) ? data : data.data;
+      
+      // Transformation des données de l'API vers notre format Place
+      const transformedResults: Place[] = apiResults.map((item: APIResponse) => ({
+        title: item.name,
+        address: item.full_address,
+        rating: item.rating?.toString(),
+        reviews: item.review_count?.toString(),
+        type: item.types?.join(", "),
+        phone: item.phone_number,
+        website: item.website || undefined,
+      }));
 
-      if (!Array.isArray(results)) {
-        console.error("Format de réponse inattendu:", data);
-        throw new Error("Format de réponse invalide - les résultats ne sont pas un tableau");
-      }
-
-      setResults(results);
+      setResults(transformedResults);
     } catch (error) {
       console.error("Search error:", error);
       toast({
