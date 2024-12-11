@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { generateDescription } from "@/api/generate-description";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface ChatGPTStepProps {
   placeId?: string;
@@ -18,20 +20,23 @@ interface ChatGPTStepProps {
 export function ChatGPTStep({ placeId, title, address, type, rating, phone }: ChatGPTStepProps) {
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGenerateDescription = async () => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      toast({
-        variant: "destructive",
-        title: "Configuration requise",
-        description: "Veuillez configurer votre clé API OpenAI",
-      });
-      return;
-    }
-
     setIsLoading(true);
+    setError(null);
+    
     try {
+      // Vérifier d'abord si la clé API est configurée
+      const { data: { secret: openaiApiKey } } = await supabase
+        .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
+
+      if (!openaiApiKey) {
+        setError("Veuillez configurer votre clé API OpenAI dans les paramètres du projet.");
+        return;
+      }
+
       const prompt = `Rédige une description complète et professionnelle pour un répertoire en ligne de prestataires spécialisés dans l'organisation d'événements. Inclut les informations suivantes :
 - Nom : ${title}
 - Adresse : ${address}
@@ -63,11 +68,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       });
     } catch (error) {
       console.error("Erreur:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de générer la description",
-      });
+      setError("Une erreur est survenue lors de la génération de la description. Veuillez vérifier votre clé API OpenAI.");
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +78,14 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
     <Card className="p-6 space-y-4">
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Génération de la description</h2>
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <Button 
           onClick={handleGenerateDescription} 
           disabled={isLoading}
@@ -84,6 +93,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         >
           {isLoading ? "Génération en cours..." : "Générer la description"}
         </Button>
+        
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
