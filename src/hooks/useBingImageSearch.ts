@@ -27,6 +27,19 @@ export function useBingImageSearch(title: string, address: string, website?: str
     return null;
   };
 
+  const cleanAddress = (address: string): string => {
+    // Remove the title if it appears at the start of the address
+    let cleanedAddress = address.replace(title, '').trim();
+    // Remove any leading commas and spaces
+    cleanedAddress = cleanedAddress.replace(/^[,\s]+/, '');
+    // Split by commas and take the last two parts (city and postal code)
+    const parts = cleanedAddress.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      return parts.slice(-2).join(', ');
+    }
+    return cleanedAddress;
+  };
+
   const searchImages = async () => {
     setIsLoading(true);
     try {
@@ -35,14 +48,14 @@ export function useBingImageSearch(title: string, address: string, website?: str
       
       if (effectiveWebsite) {
         searchQuery = `site:${effectiveWebsite}`;
+        console.log("Using website query:", searchQuery);
       } else {
-        // Combine title and address, but remove any duplicate information
-        const addressParts = address.split(',');
-        const cleanAddress = addressParts[addressParts.length - 2] + ',' + addressParts[addressParts.length - 1];
-        searchQuery = `${title} ${cleanAddress}`;
+        const cleanedAddress = cleanAddress(address);
+        searchQuery = `${title} ${cleanedAddress}`;
+        console.log("Using title + address query:", searchQuery);
       }
       
-      console.log("Searching images with query:", searchQuery);
+      console.log("Final search query:", searchQuery);
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
