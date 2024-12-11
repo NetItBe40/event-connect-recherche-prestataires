@@ -36,7 +36,12 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
     handleChange,
     handleFetchSocials,
     handleSave
-  } = useEnrichmentData(placeId, initialData);
+  } = useEnrichmentData(placeId, {
+    ...initialData,
+    website: initialData.website || "",
+    phone: initialData.phone || "",
+    type: initialData.type || "",
+  });
 
   return (
     <Card className="p-6 space-y-6">
