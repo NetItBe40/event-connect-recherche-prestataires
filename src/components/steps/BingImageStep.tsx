@@ -103,23 +103,32 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       console.log("Place ID:", placeId);
       console.log("Selected image URL:", selectedImage);
 
-      const { data, error } = await supabase
+      // First, update the record
+      const { error: updateError } = await supabase
         .from("places")
         .update({ photobing1: selectedImage })
-        .eq("id", placeId)
-        .select('photobing1')
-        .single();
+        .eq("id", placeId);
 
-      console.log("Update response:", { data, error });
-
-      if (error) {
-        console.error("Update error:", error);
-        throw error;
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw updateError;
       }
 
-      if (!data || data.photobing1 !== selectedImage) {
-        console.error("Update failed - data mismatch:", data);
-        throw new Error("Failed to verify update");
+      // Then, verify the update in a separate query
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("places")
+        .select("photobing1")
+        .eq("id", placeId)
+        .maybeSingle();
+
+      if (verifyError) {
+        console.error("Verification error:", verifyError);
+        throw verifyError;
+      }
+
+      if (!verifyData || verifyData.photobing1 !== selectedImage) {
+        console.error("Verification failed:", verifyData);
+        throw new Error("Failed to verify the image update");
       }
 
       toast({
