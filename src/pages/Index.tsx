@@ -23,7 +23,6 @@ export default function Index() {
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
     try {
-      // Préparer les paramètres en s'assurant que les valeurs numériques sont converties
       const apiParams = {
         query: params.query,
         country: params.country,
@@ -50,12 +49,20 @@ export default function Index() {
         throw new Error(data.message || "Une erreur est survenue");
       }
 
-      if (data.data && Array.isArray(data.data)) {
-        setResults(data.data);
-      } else {
-        console.error("Unexpected API response format:", data);
-        throw new Error("Format de réponse invalide");
+      // Vérification plus détaillée de la structure de la réponse
+      if (!data) {
+        throw new Error("Réponse vide de l'API");
       }
+
+      // L'API peut retourner les résultats directement ou dans un objet avec une propriété data
+      const results = Array.isArray(data) ? data : data.data;
+
+      if (!Array.isArray(results)) {
+        console.error("Format de réponse inattendu:", data);
+        throw new Error("Format de réponse invalide - les résultats ne sont pas un tableau");
+      }
+
+      setResults(results);
     } catch (error) {
       console.error("Search error:", error);
       toast({
