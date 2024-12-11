@@ -21,6 +21,15 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone }: Ch
   const { toast } = useToast();
 
   const handleGenerateDescription = async () => {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      toast({
+        variant: "destructive",
+        title: "Configuration requise",
+        description: "Veuillez configurer votre clé API OpenAI",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const prompt = `Rédige une description complète et professionnelle pour un répertoire en ligne de prestataires spécialisés dans l'organisation d'événements. Inclut les informations suivantes :
