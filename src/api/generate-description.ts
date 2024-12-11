@@ -32,7 +32,7 @@ export async function generateDescription(prompt: string) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Using a more cost-effective model
+        model: "gpt-4o", // Fixed model name
         messages: [
           {
             role: "system",
@@ -44,7 +44,7 @@ export async function generateDescription(prompt: string) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 500, // Reduced token count to help with quota
+        max_tokens: 500
       });
 
       return completion.choices[0].message.content;
