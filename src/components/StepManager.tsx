@@ -155,6 +155,10 @@ export function StepManager() {
     setCurrentStep((prev) => Math.min(prev + 1, 3));
   };
 
+  const handlePreviousStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
   return (
     <div className="container py-8 space-y-8">
       <div className="text-center space-y-2">
@@ -183,13 +187,24 @@ export function StepManager() {
         <div className="col-span-1 space-y-4">
           <PlaceSummary selectedPlace={selectedPlace} />
 
-          <Button
-            onClick={handleNextStep}
-            className="w-full bg-google-blue hover:bg-google-blue/90"
-            disabled={!selectedPlace && currentStep === 0}
-          >
-            Étape suivante
-          </Button>
+          <div className="flex gap-4">
+            {currentStep > 0 && (
+              <Button
+                onClick={handlePreviousStep}
+                variant="outline"
+                className="flex-1"
+              >
+                Étape précédente
+              </Button>
+            )}
+            <Button
+              onClick={handleNextStep}
+              className="flex-1 bg-google-blue hover:bg-google-blue/90"
+              disabled={!selectedPlace && currentStep === 0}
+            >
+              Étape suivante
+            </Button>
+          </div>
         </div>
       </div>
     </div>
