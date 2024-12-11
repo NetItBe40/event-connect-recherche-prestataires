@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
 import { generateDescription } from "@/api/generate-description";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface ChatGPTStepProps {
   placeId?: string;
@@ -21,19 +22,31 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone }: Ch
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem('openai_api_key');
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    localStorage.setItem('openai_api_key', apiKey);
+    toast({
+      title: "Clé API sauvegardée",
+      description: "Votre clé API OpenAI a été sauvegardée avec succès",
+    });
+  };
 
   const handleGenerateDescription = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Vérifier d'abord si la clé API est configurée
-      const { data: { secret: openaiApiKey } } = await supabase
-        .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
-
-      if (!openaiApiKey) {
-        setError("Veuillez configurer votre clé API OpenAI dans les paramètres du projet.");
+      if (!apiKey) {
+        setError("Veuillez configurer votre clé API OpenAI avant de générer une description.");
         return;
       }
 
@@ -55,16 +68,9 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       const generatedDescription = await generateDescription(prompt);
       setDescription(generatedDescription);
 
-      if (placeId) {
-        await supabase
-          .from("places")
-          .update({ description: generatedDescription })
-          .eq("id", placeId);
-      }
-
       toast({
         title: "Description générée",
-        description: "La description a été générée et sauvegardée avec succès",
+        description: "La description a été générée avec succès",
       });
     } catch (error) {
       console.error("Erreur:", error);
@@ -77,7 +83,29 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
   return (
     <Card className="p-6 space-y-4">
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Génération de la description</h2>
+        <h2 className="text-xl font-semibold">Configuration de l'API</h2>
+        
+        <div className="space-y-2">
+          <Label htmlFor="apiKey">Clé API OpenAI</Label>
+          <div className="flex gap-2">
+            <Input
+              id="apiKey"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="sk-..."
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSaveApiKey}
+              variant="outline"
+            >
+              Sauvegarder la clé
+            </Button>
+          </div>
+        </div>
+
+        <h2 className="text-xl font-semibold pt-4">Génération de la description</h2>
         
         {error && (
           <Alert variant="destructive">
