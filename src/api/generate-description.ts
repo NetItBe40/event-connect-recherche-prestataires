@@ -1,21 +1,18 @@
 import OpenAI from 'openai';
-
-if (!import.meta.env.VITE_OPENAI_API_KEY) {
-  throw new Error("OpenAI API key not configured. Please add your API key to continue.");
-}
+import { supabase } from '@/lib/supabase';
 
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || '',
   dangerouslyAllowBrowser: true
 });
 
 export async function generateDescription(prompt: string) {
-  if (!import.meta.env.VITE_OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured");
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OpenAI API key not configured. Please add your API key in Supabase secrets.");
   }
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4",
     messages: [
       {
         role: "system",
