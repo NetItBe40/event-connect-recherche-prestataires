@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { supabase } from "@/integrations/supabase/client";
 
 const openai = new OpenAI({
   apiKey: '', // We'll set this dynamically
@@ -7,14 +8,26 @@ const openai = new OpenAI({
 
 export async function generateDescription(prompt: string) {
   try {
-    const apiKey = localStorage.getItem('openai_api_key');
-    if (!apiKey) {
-      throw new Error("OpenAI API key not configured. Please add your API key in the settings.");
+    // Fetch API key from Supabase
+    const { data: apiKeys, error } = await supabase
+      .from('apikeys')
+      .select('apikey')
+      .eq('provider', 'openai')
+      .single();
+
+    if (error) {
+      throw new Error("Erreur lors de la récupération de la clé API");
     }
+
+    if (!apiKeys?.apikey) {
+      throw new Error("Clé API OpenAI non configurée dans la base de données");
+    }
+
+    const apiKey = apiKeys.apikey;
 
     // Validate API key format
     if (!apiKey.startsWith('sk-')) {
-      throw new Error("Invalid API key format. The key should start with 'sk-'");
+      throw new Error("Format de clé API invalide. La clé doit commencer par 'sk-'");
     }
 
     // Update the API key
@@ -40,7 +53,7 @@ export async function generateDescription(prompt: string) {
   } catch (error: any) {
     // Handle specific API errors
     if (error?.status === 401) {
-      throw new Error("Invalid API key. Please check your OpenAI API key and try again.");
+      throw new Error("Clé API invalide. Veuillez vérifier votre clé API OpenAI.");
     }
     
     // Re-throw the error with a more user-friendly message
