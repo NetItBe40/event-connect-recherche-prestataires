@@ -24,6 +24,7 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const extractWebsiteFromTitle = (title: string): string | null => {
@@ -82,19 +83,21 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     }
   };
 
-  const handleImageSelect = async (imageUrl: string) => {
-    console.log("Selecting image:", imageUrl);
-    console.log("Place ID:", placeId);
-    
-    if (!placeId) {
+  const handleImageSelect = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const handleSaveImage = async () => {
+    if (!selectedImage || !placeId) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de sauvegarder l'image sans identifiant de lieu",
+        description: "Veuillez sélectionner une image",
       });
       return;
     }
 
+    setIsSaving(true);
     try {
       // First, let's verify the place exists
       const { data: place, error: fetchError } = await supabase
@@ -103,24 +106,17 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
         .eq("id", placeId)
         .single();
 
-      console.log("Place verification:", { place, fetchError });
-
       if (fetchError || !place) {
         throw new Error("Place not found");
       }
 
-      // Then update the photobing1 field using PATCH method
-      const { data, error } = await supabase
-        .from('places')
-        .update({ photobing1: imageUrl })
-        .match({ id: placeId });
-
-      console.log("Update response:", { data, error });
+      // Then update the photobing1 field
+      const { error } = await supabase
+        .from("places")
+        .update({ photobing1: selectedImage })
+        .eq("id", placeId);
 
       if (error) throw error;
-
-      // If successful, update the UI
-      setSelectedImage(imageUrl);
       
       toast({
         title: "Image sauvegardée",
@@ -133,6 +129,8 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
         title: "Erreur",
         description: "Impossible de sauvegarder l'image",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -153,26 +151,38 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
       </div>
 
       {photos.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
-          {photos.map((photo, index) => (
-            <div key={index} className="space-y-2 relative">
-              <div 
-                className="cursor-pointer relative group"
-                onClick={() => handleImageSelect(photo.url)}
-              >
-                <PlacePhoto photo={photo.url} title={title} />
-                {selectedImage === photo.url && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                    <Check className="w-8 h-8 text-white" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {photos.map((photo, index) => (
+              <div key={index} className="space-y-2 relative">
+                <div 
+                  className="cursor-pointer relative group"
+                  onClick={() => handleImageSelect(photo.url)}
+                >
+                  <PlacePhoto photo={photo.url} title={title} />
+                  {selectedImage === photo.url && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                      <Check className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg" />
+                </div>
+                <p className="text-xs text-gray-500">
+                  {photo.width}x{photo.height}px • {photo.contentSize}
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                {photo.width}x{photo.height}px • {photo.contentSize}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {selectedImage && (
+            <Button 
+              onClick={handleSaveImage} 
+              disabled={isSaving}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {isSaving ? "Enregistrement en cours..." : "Enregistrer l'image sélectionnée"}
+            </Button>
+          )}
         </div>
       )}
     </Card>
