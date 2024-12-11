@@ -9,18 +9,18 @@ const openai = new OpenAI({
 export async function generateDescription(prompt: string) {
   try {
     // Fetch the OpenAI API key from Supabase
-    const { data: { secret: openaiApiKey }, error: secretError } = await supabase
+    const { data, error: secretError } = await supabase
       .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
 
-    if (secretError || !openaiApiKey) {
+    if (secretError || !data || !data.secret) {
       throw new Error("OpenAI API key not configured. Please add your API key in Supabase secrets.");
     }
 
     // Update the API key
-    openai.apiKey = openaiApiKey;
+    openai.apiKey = data.secret;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4", // Fixed model name
       messages: [
         {
           role: "system",
