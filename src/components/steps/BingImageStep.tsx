@@ -9,9 +9,10 @@ interface BingImageStepProps {
   placeId?: string;
   title: string;
   address: string;
+  website?: string;
 }
 
-export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
+export function BingImageStep({ placeId, title, address, website }: BingImageStepProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
