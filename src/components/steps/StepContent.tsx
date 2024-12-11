@@ -61,26 +61,28 @@ export function StepContent({
         />
       );
     case 2:
+      const initialData = {
+        website: selectedPlace?.website || "",
+        phone: selectedPlace?.phone || "",
+        type: selectedPlace?.type || "",
+        openingHours: selectedPlace?.openingHours || {},
+        facebook: selectedPlace?.facebook || "",
+        instagram: selectedPlace?.instagram || "",
+        tiktok: selectedPlace?.tiktok || "",
+        snapchat: selectedPlace?.snapchat || "",
+        twitter: selectedPlace?.twitter || "",
+        linkedin: selectedPlace?.linkedin || "",
+        github: selectedPlace?.github || "",
+        youtube: selectedPlace?.youtube || "",
+        pinterest: selectedPlace?.pinterest || "",
+        email_1: selectedPlace?.email_1 || "",
+        email_2: selectedPlace?.email_2 || "",
+      };
+
       return (
         <EnrichmentStep 
           placeId={selectedPlace?.id}
-          initialData={{
-            website: selectedPlace?.website,
-            phone: selectedPlace?.phone,
-            type: selectedPlace?.type,
-            openingHours: selectedPlace?.openingHours,
-            facebook: selectedPlace?.facebook,
-            instagram: selectedPlace?.instagram,
-            tiktok: selectedPlace?.tiktok,
-            snapchat: selectedPlace?.snapchat,
-            twitter: selectedPlace?.twitter,
-            linkedin: selectedPlace?.linkedin,
-            github: selectedPlace?.github,
-            youtube: selectedPlace?.youtube,
-            pinterest: selectedPlace?.pinterest,
-            email_1: selectedPlace?.email_1,
-            email_2: selectedPlace?.email_2,
-          }}
+          initialData={initialData}
         />
       );
     case 3:
