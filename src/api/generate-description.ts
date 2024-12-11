@@ -10,12 +10,11 @@ export async function generateDescription(prompt: string) {
   try {
     console.log("Début de la récupération de la clé API");
     
-    // Fetch API key from Supabase with better error handling
     const { data: apiKeys, error } = await supabase
       .from('apikeys')
       .select('apikey')
       .eq('provider', 'openai')
-      .single(); // Use single() instead of limit(1) to get the object directly
+      .single();
 
     if (error) {
       console.error("Erreur Supabase:", error);
@@ -27,9 +26,9 @@ export async function generateDescription(prompt: string) {
       throw new Error("Aucune clé API OpenAI trouvée dans la base de données");
     }
 
+    console.log("Clé API récupérée:", apiKeys.apikey);
     console.log("Clé API OpenAI récupérée avec succès");
     
-    // Update the API key
     openai.apiKey = apiKeys.apikey;
 
     const completion = await openai.chat.completions.create({
@@ -52,7 +51,6 @@ export async function generateDescription(prompt: string) {
   } catch (error: any) {
     console.error("Erreur lors de la génération de la description:", error);
     
-    // Handle specific API errors
     if (error?.status === 401) {
       throw new Error("Clé API invalide. Veuillez vérifier votre clé API OpenAI.");
     }
