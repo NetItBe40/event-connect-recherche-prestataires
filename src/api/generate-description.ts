@@ -32,7 +32,7 @@ export async function generateDescription(prompt: string) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Using the correct model name
+        model: "gpt-4", // Using the standard GPT-4 model
         messages: [
           {
             role: "system",
@@ -51,8 +51,13 @@ export async function generateDescription(prompt: string) {
     } catch (openaiError: any) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
+      // Check for specific error types
       if (openaiError?.status === 429) {
-        throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+        if (openaiError.message?.includes("quota")) {
+          throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+        } else {
+          throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
+        }
       }
       
       throw openaiError;
