@@ -10,6 +10,16 @@ export async function generateDescription(prompt: string) {
   try {
     console.log("Début de la récupération de la clé API");
     
+    // Test de lecture de la table apikeys
+    const { count, error: countError } = await supabase
+      .from('apikeys')
+      .select('*', { count: 'exact', head: true });
+    
+    console.log("Nombre d'entrées dans la table apikeys:", count);
+    if (countError) {
+      console.error("Erreur lors du comptage:", countError);
+    }
+
     const { data: apiKeys, error } = await supabase
       .from('apikeys')
       .select('apikey')
@@ -17,7 +27,12 @@ export async function generateDescription(prompt: string) {
       .single();
 
     if (error) {
-      console.error("Erreur Supabase:", error);
+      console.error("Erreur Supabase détaillée:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw new Error("Erreur lors de la récupération de la clé API");
     }
 
@@ -26,7 +41,7 @@ export async function generateDescription(prompt: string) {
       throw new Error("Aucune clé API OpenAI trouvée dans la base de données");
     }
 
-    console.log("Clé API récupérée:", apiKeys.apikey);
+    console.log("Clé API trouvée:", apiKeys.apikey.substring(0, 5) + "...");
     console.log("Clé API OpenAI récupérée avec succès");
     
     openai.apiKey = apiKeys.apikey;
