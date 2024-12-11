@@ -17,6 +17,8 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const searchQuery = website ? `site:${website} ${title} ${address}` : `${title} ${address}`;
+
   const searchImages = async () => {
     setIsLoading(true);
     try {
@@ -60,6 +62,9 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     <Card className="p-6 space-y-6">
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Recherche d'images</h2>
+        <p className="text-sm text-gray-600">
+          Requête Bing : <span className="font-mono bg-gray-100 px-2 py-1 rounded">{searchQuery}</span>
+        </p>
         <Button 
           onClick={searchImages} 
           disabled={isLoading}
