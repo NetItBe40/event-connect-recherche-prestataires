@@ -30,30 +30,35 @@ export async function generateDescription(prompt: string) {
     
     openai.apiKey = apiKeys.apikey;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "Tu es un expert en rédaction de descriptions professionnelles pour des prestataires événementiels. Tu dois rédiger des descriptions claires, engageantes et optimisées pour le SEO."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Using a more cost-effective model
+        messages: [
+          {
+            role: "system",
+            content: "Tu es un expert en rédaction de descriptions professionnelles pour des prestataires événementiels. Tu dois rédiger des descriptions claires, engageantes et optimisées pour le SEO."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500, // Reduced token count to help with quota
+      });
 
-    return completion.choices[0].message.content;
+      return completion.choices[0].message.content;
+    } catch (openaiError: any) {
+      console.error("Erreur OpenAI détaillée:", openaiError);
+      
+      if (openaiError?.status === 429) {
+        throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+      }
+      
+      throw openaiError;
+    }
   } catch (error: any) {
     console.error("Erreur lors de la génération de la description:", error);
-    
-    if (error?.status === 401) {
-      throw new Error("Clé API invalide. Veuillez vérifier votre clé API OpenAI.");
-    }
-    
     throw error;
   }
 }
