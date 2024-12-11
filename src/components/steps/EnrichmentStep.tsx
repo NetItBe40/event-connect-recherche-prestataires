@@ -30,6 +30,9 @@ interface EnrichmentStepProps {
 }
 
 export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
+  console.log("EnrichmentStep - initialData:", initialData);
+  console.log("EnrichmentStep - website value:", initialData.website);
+
   const {
     data,
     isLoading,
@@ -42,6 +45,8 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
     phone: initialData.phone || "",
     type: initialData.type || "",
   });
+
+  console.log("EnrichmentStep - data after hook:", data);
 
   return (
     <Card className="p-6 space-y-6">

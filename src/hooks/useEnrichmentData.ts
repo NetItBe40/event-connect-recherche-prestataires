@@ -23,16 +23,23 @@ interface EnrichmentData {
 }
 
 export function useEnrichmentData(placeId: string | undefined, initialData: EnrichmentData) {
-  const [data, setData] = useState({
-    ...initialData,
-    website: initialData.website || "",
-    phone: initialData.phone || "",
-    type: initialData.type || "",
+  console.log("useEnrichmentData - initialData received:", initialData);
+  
+  const [data, setData] = useState(() => {
+    console.log("useEnrichmentData - initializing state with:", initialData);
+    return {
+      ...initialData,
+      website: initialData.website || "",
+      phone: initialData.phone || "",
+      type: initialData.type || "",
+    };
   });
+  
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleChange = (field: string, value: string) => {
+    console.log("handleChange called with:", field, value);
     setData((prev) => ({
       ...prev,
       [field]: value,
