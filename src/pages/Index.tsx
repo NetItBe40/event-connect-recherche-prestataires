@@ -2,9 +2,8 @@ import { useState } from "react";
 import { SearchForm, type SearchParams } from "@/components/SearchForm";
 import { ResultsList } from "@/components/ResultsList";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { ExistingPlaceAlert } from "@/components/ExistingPlaceAlert";
+import { useSupabaseSearch } from "@/hooks/useSupabaseSearch";
 
 interface Place {
   id?: string;
@@ -31,42 +30,6 @@ interface Place {
   description?: string;
 }
 
-interface APIResponse {
-  business_id: string;
-  name: string;
-  full_address: string;
-  rating: number;
-  review_count: number;
-  types: string;
-  phone_number: string;
-  website: string | null;
-  latitude: number;
-  longitude: number;
-  timezone: string;
-  place_id: string;
-  place_link: string;
-  price_level: string;
-  Sunday: string;
-  Monday: string;
-  Tuesday: string;
-  Wednesday: string;
-  Thursday: string;
-  Friday: string;
-  Saturday: string;
-  Mercredi: string;
-  Jeudi: string;
-  Vendredi: string;
-  Samedi: string;
-  Dimanche: string;
-  Lundi: string;
-  Mardi: string;
-  city: string;
-  verified: boolean;
-  photos: string;
-  state: string;
-  description: string;
-}
-
 const API_KEY = "333560f1da2bc2c0fd39bfd3f4e1567b9b208d9ace5945433a3e1a75a5232657";
 
 export default function Index() {
@@ -74,52 +37,31 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(false);
   const [existingPlace, setExistingPlace] = useState<Place | null>(null);
   const { toast } = useToast();
-
-  const checkExistingPlace = async (query: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('places')
-        .select('*')
-        .ilike('title', `%${query}%`)
-        .single();
-
-      if (error) {
-        if (error.code !== 'PGRST116') { // Code when no match is found
-          console.error('Erreur lors de la vérification:', error);
-        }
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Erreur lors de la vérification:', error);
-      return null;
-    }
-  };
+  const { checkExistingPlace } = useSupabaseSearch();
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
     setExistingPlace(null);
 
-    // Vérifier si le lieu existe déjà
-    const existing = await checkExistingPlace(params.query);
-    if (existing) {
-      setExistingPlace(existing);
-      toast({
-        title: "Lieu déjà enregistré",
-        description: "Ce lieu existe déjà dans la base de données",
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Vérifier si le lieu existe déjà
+      const existing = await checkExistingPlace(params.query);
+      if (existing) {
+        setExistingPlace(existing);
+        toast({
+          title: "Lieu déjà enregistré",
+          description: "Ce lieu existe déjà dans la base de données",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       let endpoint = "https://api.scrapetable.com/maps/search";
       let apiParams: any = {
         query: params.query,
         country: params.country,
         limit: parseInt(params.limit),
-        lang: "french", // Ajout du paramètre de langue
+        lang: "french",
         ...(params.lat && { lat: parseFloat(params.lat) }),
         ...(params.lng && { lng: parseFloat(params.lng) }),
       };
@@ -128,7 +70,7 @@ export default function Index() {
         endpoint = "https://api.scrapetable.com/maps/place";
         apiParams = {
           place_id: params.placeId,
-          lang: "french", // Ajout du paramètre de langue aussi pour les détails d'un lieu
+          lang: "french",
         };
       }
 
@@ -150,23 +92,13 @@ export default function Index() {
         throw new Error(data.message || "Une erreur est survenue");
       }
 
-      if (!data) {
-        throw new Error("Format de réponse invalide");
-      }
-
-      let apiResults: APIResponse[];
-      
-      if (params.placeId) {
-        apiResults = [data];
-      } else {
-        apiResults = Array.isArray(data) ? data : data.data;
-      }
+      let apiResults = params.placeId ? [data] : (Array.isArray(data) ? data : data.data);
 
       if (!Array.isArray(apiResults)) {
         throw new Error("Format de réponse invalide");
       }
-      
-      const transformedResults: Place[] = apiResults.map((item: APIResponse) => ({
+
+      const transformedResults = apiResults.map(item => ({
         id: item.business_id,
         title: item.name,
         address: item.full_address,
@@ -226,21 +158,7 @@ export default function Index() {
         <SearchForm onSearch={handleSearch} isLoading={isLoading} />
       </div>
 
-      {existingPlace && (
-        <Alert className="max-w-2xl mx-auto">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Lieu déjà enregistré</AlertTitle>
-          <AlertDescription>
-            <div className="mt-2 space-y-2">
-              <p><strong>Nom :</strong> {existingPlace.title}</p>
-              <p><strong>Adresse :</strong> {existingPlace.address}</p>
-              {existingPlace.phone && <p><strong>Téléphone :</strong> {existingPlace.phone}</p>}
-              {existingPlace.type && <p><strong>Type :</strong> {existingPlace.type}</p>}
-              {existingPlace.rating && <p><strong>Note :</strong> {existingPlace.rating}/5</p>}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      {existingPlace && <ExistingPlaceAlert place={existingPlace} />}
 
       <ResultsList results={results} isLoading={isLoading} />
     </div>
