@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { StepContent } from "./steps/StepContent";
 import { PlaceSummary } from "./steps/PlaceSummary";
+import { supabase } from "@/lib/supabase";
 
 interface Place {
   id?: string;
@@ -59,11 +60,22 @@ export function StepManager() {
     }
 
     try {
+      // Récupérer la clé API depuis Supabase
+      const { data: apiKeyData, error: apiKeyError } = await supabase
+        .from('apikeys')
+        .select('apikey')
+        .eq('provider', 'scrapetable')
+        .single();
+
+      if (apiKeyError || !apiKeyData?.apikey) {
+        throw new Error("Impossible de récupérer la clé API");
+      }
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "api-key": import.meta.env.VITE_SCRAPETABLE_API_KEY || "",
+          "api-key": apiKeyData.apikey,
         },
         body: JSON.stringify(apiParams),
       });
