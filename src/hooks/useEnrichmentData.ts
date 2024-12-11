@@ -23,48 +23,30 @@ interface EnrichmentData {
 }
 
 export function useEnrichmentData(placeId: string | undefined, initialData: EnrichmentData) {
-  console.log("useEnrichmentData - initialData received:", initialData);
-  
-  const [data, setData] = useState<EnrichmentData>(() => {
-    console.log("useEnrichmentData - initializing state with:", initialData);
-    return {
-      website: initialData.website || "",
-      phone: initialData.phone || "",
-      type: initialData.type || "",
-      openingHours: initialData.openingHours || {},
-      facebook: initialData.facebook || "",
-      instagram: initialData.instagram || "",
-      tiktok: initialData.tiktok || "",
-      snapchat: initialData.snapchat || "",
-      twitter: initialData.twitter || "",
-      linkedin: initialData.linkedin || "",
-      github: initialData.github || "",
-      youtube: initialData.youtube || "",
-      pinterest: initialData.pinterest || "",
-      email_1: initialData.email_1 || "",
-      email_2: initialData.email_2 || "",
-    };
+  const [data, setData] = useState<EnrichmentData>({
+    website: initialData.website || "",
+    phone: initialData.phone || "",
+    type: initialData.type || "",
   });
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleChange = (field: string, value: string) => {
-    console.log("handleChange called with:", field, value);
     setData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleFetchSocials = async () => {
+  const handleFetchSocials = async (): Promise<boolean> => {
     if (!data.website) {
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "L'URL du site web est requise pour cette opération",
       });
-      return;
+      return false;
     }
 
     setIsLoading(true);
@@ -102,13 +84,13 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
         const socialData = result[0];
         setData(prev => ({
           ...prev,
-          facebook: socialData.facebook || prev.facebook,
-          instagram: socialData.instagram || prev.instagram,
-          twitter: socialData.twitter || prev.twitter,
-          linkedin: socialData.linkedin || prev.linkedin,
-          youtube: socialData.youtube || prev.youtube,
-          email_1: socialData.emails?.[0] || prev.email_1,
-          email_2: socialData.emails?.[1] || prev.email_2,
+          facebook: socialData.facebook || "",
+          instagram: socialData.instagram || "",
+          twitter: socialData.twitter || "",
+          linkedin: socialData.linkedin || "",
+          youtube: socialData.youtube || "",
+          email_1: socialData.emails?.[0] || "",
+          email_2: socialData.emails?.[1] || "",
         }));
       }
 
@@ -117,6 +99,8 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
         description: "Les réseaux sociaux ont été récupérés avec succès",
       });
 
+      return true;
+
     } catch (error) {
       console.error("Erreur lors de la récupération des réseaux sociaux:", error);
       toast({
@@ -124,6 +108,7 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
         title: "Erreur",
         description: "Impossible de récupérer les réseaux sociaux",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }

@@ -6,13 +6,15 @@ interface EnrichmentActionsProps {
   onSave: () => void;
   isLoading: boolean;
   hasWebsite: boolean;
+  showSaveButton: boolean;
 }
 
 export function EnrichmentActions({ 
   onFetchSocials, 
   onSave, 
   isLoading, 
-  hasWebsite 
+  hasWebsite,
+  showSaveButton
 }: EnrichmentActionsProps) {
   return (
     <div className="space-y-4">
@@ -26,9 +28,11 @@ export function EnrichmentActions({
         Récupérer les réseaux sociaux
       </Button>
 
-      <Button onClick={onSave} className="w-full">
-        Sauvegarder les modifications
-      </Button>
+      {showSaveButton && (
+        <Button onClick={onSave} className="w-full">
+          Sauvegarder les modifications
+        </Button>
+      )}
     </div>
   );
 }
