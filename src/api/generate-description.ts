@@ -12,6 +12,11 @@ export async function generateDescription(prompt: string) {
       throw new Error("OpenAI API key not configured. Please add your API key in the settings.");
     }
 
+    // Validate API key format
+    if (!apiKey.startsWith('sk-')) {
+      throw new Error("Invalid API key format. The key should start with 'sk-'");
+    }
+
     // Update the API key
     openai.apiKey = apiKey;
 
@@ -32,8 +37,14 @@ export async function generateDescription(prompt: string) {
     });
 
     return completion.choices[0].message.content;
-  } catch (error) {
+  } catch (error: any) {
+    // Handle specific API errors
+    if (error?.status === 401) {
+      throw new Error("Invalid API key. Please check your OpenAI API key and try again.");
+    }
+    
+    // Re-throw the error with a more user-friendly message
     console.error("Erreur lors de la génération de la description:", error);
-    throw error;
+    throw new Error(error.message || "Une erreur est survenue lors de la génération de la description");
   }
 }
