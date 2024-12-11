@@ -89,6 +89,7 @@ export function StepContent({
           placeId={selectedPlace?.id}
           title={selectedPlace?.title}
           address={selectedPlace?.address}
+          website={selectedPlace?.website}
         />
       );
     default:
