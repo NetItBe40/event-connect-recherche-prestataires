@@ -83,6 +83,9 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
   };
 
   const handleImageSelect = async (imageUrl: string) => {
+    console.log("Selecting image:", imageUrl);
+    console.log("Place ID:", placeId);
+    
     setSelectedImage(imageUrl);
     
     if (!placeId) {
@@ -95,10 +98,13 @@ export function BingImageStep({ placeId, title, address, website }: BingImageSte
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("places")
         .update({ photobing1: imageUrl })
-        .eq("id", placeId);
+        .eq("id", placeId)
+        .select();
+
+      console.log("Update response:", { data, error });
 
       if (error) throw error;
 
