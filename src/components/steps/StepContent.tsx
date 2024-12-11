@@ -23,7 +23,8 @@ export function StepContent({
   onSearch, 
   onSelect 
 }: StepContentProps) {
-  console.log("StepContent - selectedPlace:", selectedPlace);
+  console.log("StepContent - Étape actuelle:", currentStep);
+  console.log("StepContent - Données du lieu sélectionné:", selectedPlace);
   
   if (!selectedPlace && currentStep > 0) {
     return (

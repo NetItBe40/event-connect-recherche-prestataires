@@ -20,6 +20,7 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       // Récupérer d'abord le site web depuis la base de données
       let website = '';
       if (placeId) {
+        console.log("useBingImageSearch - Recherche du site web pour l'ID:", placeId);
         const { data: placeData, error } = await supabase
           .from('places')
           .select('website')
@@ -28,21 +29,18 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
 
         if (error) throw error;
         website = placeData?.website || '';
-        console.log("Retrieved website from DB:", website);
+        console.log("useBingImageSearch - Site web trouvé:", website);
       }
       
       let searchQuery;
       
       if (website) {
         searchQuery = `site:${website}`;
-        console.log("Using website query:", searchQuery);
+        console.log("useBingImageSearch - Utilisation de la requête site:", searchQuery);
       } else {
-        const cleanAddress = address.replace(title, '').trim();
-        searchQuery = `${title} ${cleanAddress}`;
-        console.log("Using title + address query:", searchQuery);
+        searchQuery = `${title} ${address}`;
+        console.log("useBingImageSearch - Utilisation de la requête titre + adresse:", searchQuery);
       }
-      
-      console.log("Final search query:", searchQuery);
       
       const response = await supabase.functions.invoke('search-images', {
         body: { 
