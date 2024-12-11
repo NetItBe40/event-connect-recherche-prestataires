@@ -4,6 +4,7 @@ import { ResultsList } from "@/components/ResultsList";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Place {
+  id?: string;
   title: string;
   address: string;
   rating?: string;
@@ -69,7 +70,6 @@ export default function Index() {
         throw new Error(data.message || "Une erreur est survenue");
       }
 
-      // Vérification et transformation des données
       if (!data) {
         throw new Error("Format de réponse invalide");
       }
@@ -77,10 +77,8 @@ export default function Index() {
       let apiResults: APIResponse[];
       
       if (params.placeId) {
-        // Pour l'endpoint details, la réponse est un objet unique
         apiResults = [data];
       } else {
-        // Pour l'endpoint search, la réponse est un tableau
         apiResults = Array.isArray(data) ? data : data.data;
       }
 
@@ -88,8 +86,8 @@ export default function Index() {
         throw new Error("Format de réponse invalide");
       }
       
-      // Transformation des données de l'API vers notre format Place
       const transformedResults: Place[] = apiResults.map((item: APIResponse) => ({
+        id: item.business_id,
         title: item.name,
         address: item.full_address,
         rating: item.rating?.toString(),

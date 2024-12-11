@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Phone, Globe, Star, MessageCircle, Tag } from "lucide-react";
+import { MapPin, Phone, Globe, Star, MessageCircle, Tag, Info } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface Place {
+  id?: string;
   title: string;
   address: string;
   rating?: string;
@@ -23,6 +24,12 @@ export function ResultCard({ place }: ResultCardProps) {
         <CardTitle className="text-xl font-bold text-google-blue">
           {place.title}
         </CardTitle>
+        {place.id && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Info className="h-4 w-4" />
+            <span>ID: {place.id}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Adresse */}
