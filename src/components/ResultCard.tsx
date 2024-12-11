@@ -2,6 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Phone, Globe, Star, MessageCircle, Tag, Info, Clock, MapIcon, DollarSign, CheckCircle, Building2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { PlacePhoto } from "./PlacePhoto";
+import { Button } from "./ui/button";
+import { useToast } from "./ui/use-toast";
+import { createClient } from '@supabase/supabase-js';
 
 interface Place {
   id?: string;
@@ -33,12 +36,72 @@ interface ResultCardProps {
 }
 
 export function ResultCard({ place }: ResultCardProps) {
+  const { toast } = useToast();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const handleSelect = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('places')
+        .insert([
+          {
+            title: place.title,
+            address: place.address,
+            rating: place.rating,
+            reviews: place.reviews,
+            type: place.type,
+            phone: place.phone,
+            website: place.website,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            timezone: place.timezone,
+            place_id: place.placeId,
+            place_link: place.placeLink,
+            price_level: place.priceLevel,
+            opening_hours: place.openingHours,
+            city: place.city,
+            verified: place.verified,
+            photos: place.photos,
+            state: place.state,
+            description: place.description
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Le lieu a été sauvegardé avec succès",
+      });
+
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la sauvegarde",
+      });
+    }
+  };
+
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold text-google-blue">
-          {place.title}
-        </CardTitle>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-xl font-bold text-google-blue">
+            {place.title}
+          </CardTitle>
+          <Button 
+            onClick={handleSelect}
+            className="bg-google-blue hover:bg-google-blue/90"
+          >
+            Sélectionner
+          </Button>
+        </div>
         {place.verified && (
           <div className="flex items-center gap-2 text-sm text-green-500">
             <CheckCircle className="h-4 w-4" />
@@ -53,10 +116,7 @@ export function ResultCard({ place }: ResultCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Photo */}
         <PlacePhoto photo={place.photos} title={place.title} />
-
-        {/* État actuel et prix */}
         <div className="flex items-center justify-between">
           {place.state && (
             <div className="flex items-center gap-2">
@@ -71,8 +131,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </div>
           )}
         </div>
-
-        {/* Adresse et ville */}
         <div className="space-y-2">
           <div className="flex items-start gap-2">
             <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
@@ -85,8 +143,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </div>
           )}
         </div>
-
-        {/* Coordonnées */}
         {(place.latitude && place.longitude) && (
           <div className="flex items-center gap-2">
             <MapIcon className="h-4 w-4 text-gray-500" />
@@ -95,8 +151,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </span>
           </div>
         )}
-
-        {/* Note et avis */}
         {(place.rating || place.reviews) && (
           <div className="flex items-center gap-4">
             {place.rating && (
@@ -113,18 +167,13 @@ export function ResultCard({ place }: ResultCardProps) {
             )}
           </div>
         )}
-
         <Separator />
-
-        {/* Type d'établissement */}
         {place.type && (
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">Catégorie : {place.type}</span>
           </div>
         )}
-
-        {/* Horaires d'ouverture */}
         {place.openingHours && Object.keys(place.openingHours).length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -143,8 +192,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </div>
           </div>
         )}
-
-        {/* Téléphone */}
         {place.phone && (
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-gray-500" />
@@ -156,8 +203,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </a>
           </div>
         )}
-
-        {/* Site web */}
         {place.website && (
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-gray-500" />
@@ -171,8 +216,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </a>
           </div>
         )}
-
-        {/* Lien Google Maps */}
         {place.placeLink && (
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-gray-500" />
@@ -186,8 +229,6 @@ export function ResultCard({ place }: ResultCardProps) {
             </a>
           </div>
         )}
-
-        {/* Description */}
         {place.description && (
           <div className="text-sm text-gray-600">
             <span className="font-medium">Description :</span> {place.description}
