@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { generateDescription } from "@/api/generate-description";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,6 +23,12 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone, desc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialDescription) {
+      setDescription(initialDescription);
+    }
+  }, [initialDescription]);
 
   const handleGenerateDescription = async () => {
     setIsLoading(true);
@@ -54,12 +60,12 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           .eq('id', placeId);
 
         if (updateError) throw updateError;
-      }
 
-      toast({
-        title: "Description générée",
-        description: "La description a été générée et sauvegardée avec succès",
-      });
+        toast({
+          title: "Description générée",
+          description: "La description a été générée et sauvegardée avec succès",
+        });
+      }
     } catch (error) {
       console.error("Erreur:", error);
       setError("Une erreur est survenue lors de la génération de la description. Veuillez réessayer.");
@@ -82,7 +88,8 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       const { error } = await supabase
         .from('places')
         .update({ description })
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .select();
 
       if (error) throw error;
 
