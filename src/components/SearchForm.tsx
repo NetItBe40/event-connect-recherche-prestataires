@@ -42,6 +42,31 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
     }
   };
 
+  const extractPlaceNameAndCoordinates = (url: string) => {
+    try {
+      // Extraire le nom du lieu
+      const placeNameMatch = url.match(/place\/(.*?)\/[@\d]/);
+      if (placeNameMatch && placeNameMatch[1]) {
+        const placeName = decodeURIComponent(placeNameMatch[1].replace(/\+/g, ' '));
+        setSearchParams(prev => ({ ...prev, query: placeName }));
+      }
+
+      // Extraire les coordonnées
+      const coordsMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (coordsMatch) {
+        const [, lat, lng] = coordsMatch;
+        setSearchParams(prev => ({
+          ...prev,
+          lat: lat,
+          lng: lng,
+        }));
+        console.log(`Coordonnées extraites - Lat: ${lat}, Lng: ${lng}`);
+      }
+    } catch (error) {
+      console.error("Error extracting place name and coordinates:", error);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params = { ...searchParams };
@@ -60,6 +85,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
     const { name, value } = e.target;
     if (name === "googleUrl") {
       setGoogleUrl(value);
+      extractPlaceNameAndCoordinates(value);
     } else {
       setSearchParams((prev) => ({
         ...prev,
