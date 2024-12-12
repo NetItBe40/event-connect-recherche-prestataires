@@ -19,22 +19,29 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
-      console.log("Description à sauvegarder:", description);
       
-      // Sauvegarde directe de la description
+      // Vérification de l'état actuel
+      const { data: currentData, error: fetchError } = await supabase
+        .from('places')
+        .select('description')
+        .eq('id', placeId)
+        .single();
+
+      if (fetchError) {
+        throw new Error("Erreur lors de la récupération des données actuelles");
+      }
+
+      // Mise à jour de la description
       const { error: updateError } = await supabase
         .from('places')
-        .update({ 
-          description: description 
-        })
+        .update({ description })
         .eq('id', placeId);
 
       if (updateError) {
-        console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
 
-      // Vérification après sauvegarde
+      // Vérification après mise à jour
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
         .select('description')
@@ -42,22 +49,20 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .single();
 
       if (verificationError) {
-        console.error("Erreur lors de la vérification finale:", verificationError);
-        throw verificationError;
+        throw new Error("Erreur lors de la vérification finale");
       }
-
-      console.log("Description après sauvegarde:", verificationData?.description);
 
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
+        currentDescription: currentData?.description,
         descriptionToSave: description,
         verificationResult: {
           data: verificationData,
           currentDescription: verificationData?.description
         }
       });
-      
+
       toast({
         title: "Succès",
         description: "La description a été sauvegardée avec succès",
