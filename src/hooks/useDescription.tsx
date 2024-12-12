@@ -21,19 +21,38 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       console.log("Description à sauvegarder:", description);
 
+      // Vérification que l'enregistrement existe
+      const { data: existingData, error: checkError } = await supabase
+        .from('places')
+        .select('id')
+        .eq('id', placeId);
+
+      if (checkError) {
+        console.error("Erreur lors de la vérification:", checkError);
+        throw checkError;
+      }
+
+      if (!existingData || existingData.length === 0) {
+        throw new Error("Aucun enregistrement trouvé avec cet ID");
+      }
+
       // Mise à jour de la description
       const { data: updateData, error: updateError } = await supabase
         .from('places')
         .update({
-          description: description.trim() // Assurons-nous qu'il n'y a pas d'espaces inutiles
+          description: description.trim()
         })
         .eq('id', placeId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
+      }
+
+      if (!updateData) {
+        throw new Error("La mise à jour n'a pas retourné de données");
       }
 
       console.log("Résultat de la mise à jour:", updateData);
@@ -45,7 +64,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         updateResponse: updateData,
         verificationResult: {
           data: updateData,
-          currentDescription: updateData?.description
+          currentDescription: updateData.description
         }
       });
 
