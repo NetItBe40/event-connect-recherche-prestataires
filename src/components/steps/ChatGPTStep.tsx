@@ -51,15 +51,25 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 6. Informations pratiques`;
 
       const generatedDescription = await generateDescription(prompt);
+      
+      if (!generatedDescription) {
+        throw new Error("Aucune description n'a été générée");
+      }
+
       setDescription(generatedDescription);
 
       if (placeId) {
         const { error: updateError } = await supabase
           .from('places')
-          .update({ description: generatedDescription })
+          .update({ 
+            description: generatedDescription 
+          })
           .eq('id', placeId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Erreur lors de la mise à jour:", updateError);
+          throw updateError;
+        }
 
         toast({
           title: "Description générée",
@@ -88,8 +98,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       const { error } = await supabase
         .from('places')
         .update({ description })
-        .eq('id', placeId)
-        .select();
+        .eq('id', placeId);
 
       if (error) throw error;
 
