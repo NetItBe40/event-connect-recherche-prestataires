@@ -100,7 +100,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         toast({
           title: "Description générée et sauvegardée",
           description: "La description a été générée et sauvegardée avec succès",
-          variant: "success"
+          variant: "default"  // Changed from "success" to "default"
         });
       } else {
         toast({
