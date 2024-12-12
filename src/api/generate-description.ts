@@ -44,7 +44,7 @@ export async function generateDescription(prompt: string) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 500
+        max_tokens: 1000  // Doublé de 500 à 1000 pour permettre des descriptions plus longues
       });
 
       return completion.choices[0].message.content;
