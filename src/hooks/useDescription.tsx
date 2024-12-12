@@ -13,17 +13,16 @@ export function useDescription(placeId?: string, initialDescription?: string) {
   const handleSaveDescription = async () => {
     if (!placeId) {
       console.error("Erreur: ID manquant");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder la description : ID manquant",
-      });
+      setError("ID manquant");
       return;
     }
 
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
-      console.log("Description à sauvegarder:", description);
+      
+      // Remove any asterisks from the beginning of the description
+      const cleanDescription = description.replace(/^\*+/, '');
+      console.log("Description nettoyée à sauvegarder:", cleanDescription);
       
       // Vérification de la description actuelle
       const { data: currentData, error: checkError } = await supabase
@@ -42,7 +41,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       // Sauvegarde de la nouvelle description
       const { data: updateData, error: updateError } = await supabase
         .from('places')
-        .update({ description })
+        .update({ description: cleanDescription })
         .eq('id', placeId)
         .select();
 
@@ -68,7 +67,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
-        descriptionToSave: description,
+        descriptionToSave: cleanDescription,
         currentDescription: currentData?.description,
         updateResponse: updateData,
         verificationResult: {
