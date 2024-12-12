@@ -19,38 +19,20 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
+      console.log("Description à sauvegarder:", description);
       
-      // Remove any asterisks from the beginning of the description
-      const cleanDescription = description.replace(/^\*+/, '');
-      console.log("Description nettoyée à sauvegarder:", cleanDescription);
-      
-      // Vérification de la description actuelle
-      const { data: currentData, error: checkError } = await supabase
+      // Sauvegarde directe de la description
+      const { error: updateError } = await supabase
         .from('places')
-        .select('description')
-        .eq('id', placeId)
-        .single();
-
-      if (checkError) {
-        console.error("Erreur lors de la vérification initiale:", checkError);
-        throw checkError;
-      }
-
-      console.log("Description actuelle:", currentData?.description);
-
-      // Sauvegarde de la nouvelle description
-      const { data: updateData, error: updateError } = await supabase
-        .from('places')
-        .update({ description: cleanDescription })
-        .eq('id', placeId)
-        .select();
+        .update({ 
+          description: description 
+        })
+        .eq('id', placeId);
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
-
-      console.log("Mise à jour effectuée:", updateData);
 
       // Vérification après sauvegarde
       const { data: verificationData, error: verificationError } = await supabase
@@ -64,12 +46,12 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw verificationError;
       }
 
+      console.log("Description après sauvegarde:", verificationData?.description);
+
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
-        descriptionToSave: cleanDescription,
-        currentDescription: currentData?.description,
-        updateResponse: updateData,
+        descriptionToSave: description,
         verificationResult: {
           data: verificationData,
           currentDescription: verificationData?.description
