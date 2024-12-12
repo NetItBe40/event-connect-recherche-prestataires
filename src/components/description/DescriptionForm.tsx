@@ -20,6 +20,12 @@ export function DescriptionForm({
   isLoading,
   DebugDialog
 }: DescriptionFormProps) {
+  const handleDescriptionChange = (value: string) => {
+    // Nettoyer la description en enlevant les caractères A répétés au début
+    const cleanedDescription = value.replace(/^A+/, '');
+    onDescriptionChange(cleanedDescription);
+  };
+
   return (
     <div className="space-y-4">
       {error && (
@@ -31,18 +37,18 @@ export function DescriptionForm({
       
       <Textarea
         value={description}
-        onChange={(e) => onDescriptionChange(e.target.value)}
+        onChange={(e) => handleDescriptionChange(e.target.value)}
         placeholder="La description générée apparaîtra ici..."
         className="h-64"
       />
 
       <Button 
         onClick={onSave}
-        disabled={!description}
+        disabled={!description || isLoading}
         variant="outline"
         className="w-full"
       >
-        Sauvegarder les modifications
+        {isLoading ? "Sauvegarde en cours..." : "Sauvegarder les modifications"}
       </Button>
 
       {DebugDialog && <DebugDialog />}
