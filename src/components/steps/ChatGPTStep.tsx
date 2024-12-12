@@ -82,23 +82,30 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           descriptionArray
         });
 
-        const { error: updateError } = await supabase
+        const { error: updateError, data } = await supabase
           .from('places')
           .update({ 
             description: JSON.stringify(descriptionArray)
           })
-          .eq('id', placeId);
+          .eq('id', placeId)
+          .select();
 
         if (updateError) {
           console.error("Erreur lors de la sauvegarde:", updateError);
           throw updateError;
         }
 
-        console.log("Description sauvegardée avec succès");
+        console.log("Description sauvegardée avec succès:", data);
 
         toast({
-          title: "Description générée",
+          title: "Description générée et sauvegardée",
           description: "La description a été générée et sauvegardée avec succès",
+          variant: "success"
+        });
+      } else {
+        toast({
+          title: "Description générée",
+          description: "La description a été générée avec succès. Vous pouvez maintenant la sauvegarder.",
         });
       }
     } catch (error) {
