@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 
 export function useDescription(placeId?: string, initialDescription?: string) {
   const [description, setDescription] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -43,13 +42,13 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Description actuelle avant la sauvegarde:", description);
       
-      // Sauvegarde directe de la description actuelle comme premier élément du tableau
-      const descriptionArray = [description];
+      // Sépare la description en paragraphes et filtre les valeurs vides
+      const paragraphs = description.split('\n\n').filter(Boolean);
       
       const { data, error } = await supabase
         .from('places')
         .update({ 
-          description: JSON.stringify(descriptionArray)
+          description: JSON.stringify(paragraphs)
         })
         .eq('id', placeId)
         .select();
@@ -75,7 +74,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
   return {
     description,
     setDescription,
-    isLoading,
     error,
     handleSaveDescription
   };
