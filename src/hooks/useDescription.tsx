@@ -12,8 +12,12 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
   const handleSaveDescription = async () => {
     if (!placeId) {
-      console.error("Erreur: ID manquant");
       setError("ID manquant");
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "ID manquant",
+      });
       return;
     }
 
@@ -21,32 +25,42 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       console.log("Description à sauvegarder:", description);
 
+      // Vérifier d'abord si l'enregistrement existe
+      const { data: existingPlace, error: checkError } = await supabase
+        .from('places')
+        .select('id, description')
+        .eq('id', placeId)
+        .single();
+
+      if (checkError) {
+        throw new Error(`Erreur lors de la vérification: ${checkError.message}`);
+      }
+
+      if (!existingPlace) {
+        throw new Error("Lieu non trouvé");
+      }
+
+      // Mise à jour avec la nouvelle description
       const { data: updateData, error: updateError } = await supabase
         .from('places')
         .update({ description })
         .eq('id', placeId)
-        .select();
+        .select()
+        .single();
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
 
-      if (!updateData || updateData.length === 0) {
-        throw new Error("Aucun enregistrement trouvé avec cet ID");
-      }
-
-      const updatedPlace = updateData[0];
-      console.log("Résultat de la mise à jour:", updatedPlace);
-
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
         descriptionToSave: description,
-        updateResponse: updatedPlace,
+        updateResponse: updateData,
         verificationResult: {
-          data: updatedPlace,
-          currentDescription: updatedPlace.description
+          data: updateData,
+          currentDescription: updateData.description
         }
       });
 
@@ -55,17 +69,19 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         description: "La description a été sauvegardée avec succès",
       });
 
+      setError(null);
       setDebugDialog(true);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la sauvegarde:", error);
       setError("Impossible de sauvegarder la description");
       
-      setDebugInfo(prev => ({
-        ...prev,
+      setDebugInfo({
         step: "Erreur",
-        error
-      }));
+        placeId,
+        descriptionToSave: description,
+        error: error.message || "Erreur inconnue"
+      });
       
       toast({
         variant: "destructive",
