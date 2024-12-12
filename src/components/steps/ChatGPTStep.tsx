@@ -32,7 +32,8 @@ export function ChatGPTStep({
     description,
     setDescription,
     error,
-    handleSaveDescription
+    handleSaveDescription,
+    DebugDialog
   } = useDescription(placeId, initialDescription);
 
   const handleGenerateDescription = async () => {
@@ -64,21 +65,13 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 
       if (placeId) {
         const descriptionArray = [generatedDescription];
-        console.log("Tentative de sauvegarde de la description générée:", {
-          placeId,
-          description: descriptionArray,
-          descriptionJson: JSON.stringify(descriptionArray)
-        });
         
-        const { data, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('places')
           .update({ 
             description: JSON.stringify(descriptionArray)
           })
-          .eq('id', placeId)
-          .select();
-
-        console.log("Résultat de la sauvegarde de la description générée:", { data, error: updateError });
+          .eq('id', placeId);
 
         if (updateError) {
           throw updateError;
@@ -120,6 +113,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           onSave={handleSaveDescription}
           error={error}
           isLoading={isLoading}
+          DebugDialog={DebugDialog}
         />
       </div>
     </Card>

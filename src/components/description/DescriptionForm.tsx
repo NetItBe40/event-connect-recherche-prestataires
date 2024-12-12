@@ -9,6 +9,7 @@ interface DescriptionFormProps {
   onSave: () => void;
   error: string | null;
   isLoading: boolean;
+  DebugDialog?: () => JSX.Element;
 }
 
 export function DescriptionForm({
@@ -16,7 +17,8 @@ export function DescriptionForm({
   onDescriptionChange,
   onSave,
   error,
-  isLoading
+  isLoading,
+  DebugDialog
 }: DescriptionFormProps) {
   return (
     <div className="space-y-4">
@@ -42,6 +44,8 @@ export function DescriptionForm({
       >
         Sauvegarder les modifications
       </Button>
+
+      {DebugDialog && <DebugDialog />}
     </div>
   );
 }
