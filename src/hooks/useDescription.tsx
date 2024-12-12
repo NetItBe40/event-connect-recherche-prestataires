@@ -28,7 +28,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .from('places')
         .select('description')
         .eq('id', placeId)
-        .maybeSingle();
+        .single();
 
       if (checkError) {
         setDebugInfo({
@@ -40,13 +40,11 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw checkError;
       }
 
-      const currentDescription = currentData?.description;
-
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
         descriptionToSave: description,
-        currentDescription,
+        currentDescription: currentData?.description,
         rawResponse: currentData
       });
 
@@ -72,7 +70,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .from('places')
         .select('description')
         .eq('id', placeId)
-        .maybeSingle();
+        .single();
 
       if (verificationError) {
         setDebugInfo(prev => ({
@@ -84,20 +82,18 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw verificationError;
       }
 
-      const finalDescription = verificationData?.description;
-
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
         updateResponse: updateData,
         verificationResult: {
           data: verificationData,
-          currentDescription: finalDescription,
+          currentDescription: verificationData?.description,
           rawResponse: verificationData
         }
       }));
 
-      console.log("Sauvegarde réussie. Description actuelle:", finalDescription);
+      console.log("Sauvegarde réussie. Description actuelle:", verificationData?.description);
       
       toast({
         title: "Succès",
