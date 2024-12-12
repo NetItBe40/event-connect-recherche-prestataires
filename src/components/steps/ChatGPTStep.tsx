@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { generateDescription } from "@/api/generate-description";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useDescription } from "@/hooks/useDescription";
 import { DescriptionForm } from "../description/DescriptionForm";
 
@@ -75,10 +75,19 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       setDescription(generatedDescription);
 
       if (placeId) {
+        // Formatage de la description en tableau avec un seul élément
+        const formattedDescription = [generatedDescription.trim()];
+        
+        console.log("Sauvegarde de la description:", {
+          placeId,
+          formattedDescription,
+          jsonString: JSON.stringify(formattedDescription)
+        });
+
         const { error: updateError } = await supabase
           .from('places')
           .update({ 
-            description: JSON.stringify([generatedDescription])
+            description: JSON.stringify(formattedDescription)
           })
           .eq('id', placeId);
 
