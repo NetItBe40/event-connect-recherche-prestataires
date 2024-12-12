@@ -25,12 +25,14 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       console.log("Description à sauvegarder:", description);
 
-      // Update the description directly
+      // Update the description
       const { data: updateData, error: updateError } = await supabase
         .from('places')
-        .update({ description })
+        .update({ 
+          description: description 
+        })
         .eq('id', placeId)
-        .select('*');
+        .select();
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
@@ -42,6 +44,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       }
 
       const updatedPlace = updateData[0];
+      console.log("Place mise à jour:", updatedPlace);
 
       setDebugInfo({
         step: "Sauvegarde réussie",
@@ -64,13 +67,15 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     } catch (error: any) {
       console.error("Erreur lors de la sauvegarde:", error);
-      setError("Impossible de sauvegarder la description");
+      
+      const errorMessage = error.message || "Erreur inconnue";
+      setError(`Impossible de sauvegarder la description: ${errorMessage}`);
       
       setDebugInfo({
         step: "Erreur",
         placeId,
         descriptionToSave: description,
-        error: error.message || "Erreur inconnue"
+        error: errorMessage
       });
       
       toast({
