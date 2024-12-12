@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DebugInfo {
   step: string;
@@ -31,6 +31,9 @@ export function DescriptionDebugDialog({
       <DialogContent className="max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Détails de la sauvegarde</DialogTitle>
+          <DialogDescription>
+            Informations détaillées sur le processus de sauvegarde de la description
+          </DialogDescription>
         </DialogHeader>
         
         <div className="mt-4 space-y-4">
