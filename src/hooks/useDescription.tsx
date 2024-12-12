@@ -23,19 +23,33 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       
+      // Vérification de la description actuelle
+      const { data: currentData, error: checkError } = await supabase
+        .from('places')
+        .select('description')
+        .eq('id', placeId)
+        .single();
+
+      if (checkError) throw checkError;
+
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
         descriptionToSave: description,
+        currentDescription: currentData?.description,
       });
 
-      const { error: updateError } = await supabase
+      // Sauvegarde de la nouvelle description
+      const { data: updateData, error: updateError } = await supabase
         .from('places')
         .update({ description })
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .select()
+        .single();
 
       if (updateError) throw updateError;
 
+      // Vérification après sauvegarde
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
         .select('description')
@@ -47,7 +61,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
-        supabaseResponse: { data: verificationData, error: updateError },
+        updateResponse: updateData,
         verificationResult: {
           data: verificationData,
           currentDescription: verificationData?.description

@@ -4,7 +4,8 @@ interface DebugInfo {
   step: string;
   placeId?: string;
   descriptionToSave?: string;
-  supabaseResponse?: any;
+  currentDescription?: string;
+  updateResponse?: any;
   verificationResult?: {
     data?: any;
     currentDescription?: string;
@@ -45,15 +46,31 @@ export function DescriptionDebugDialog({
               </div>
 
               <div>
-                <h3 className="font-bold">Description sauvegardée</h3>
+                <h3 className="font-bold">Description avant mise à jour</h3>
+                <pre className="bg-slate-100 p-2 rounded mt-1 whitespace-pre-wrap">
+                  {debugInfo.currentDescription || "Aucune description"}
+                </pre>
+              </div>
+
+              <div>
+                <h3 className="font-bold">Description à sauvegarder</h3>
                 <pre className="bg-slate-100 p-2 rounded mt-1 whitespace-pre-wrap">
                   {debugInfo.descriptionToSave}
                 </pre>
               </div>
 
+              {debugInfo.updateResponse && (
+                <div>
+                  <h3 className="font-bold">Réponse de la mise à jour</h3>
+                  <pre className="bg-slate-100 p-2 rounded mt-1">
+                    {JSON.stringify(debugInfo.updateResponse, null, 2)}
+                  </pre>
+                </div>
+              )}
+
               {debugInfo.verificationResult?.currentDescription && (
                 <div>
-                  <h3 className="font-bold">Description en base</h3>
+                  <h3 className="font-bold">Description après sauvegarde</h3>
                   <pre className="bg-slate-100 p-2 rounded mt-1">
                     {debugInfo.verificationResult.currentDescription}
                   </pre>
