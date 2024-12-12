@@ -27,7 +27,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       const { data: currentData, error: checkError } = await supabase
         .from('places')
         .select('description')
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .maybeSingle();
 
       if (checkError) {
         setDebugInfo({
@@ -39,7 +40,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw checkError;
       }
 
-      const currentDescription = currentData && currentData.length > 0 ? currentData[0].description : null;
+      const currentDescription = currentData?.description;
 
       setDebugInfo({
         step: "Début de la sauvegarde",
@@ -66,13 +67,12 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw updateError;
       }
 
-      const updatedDescription = updateData && updateData.length > 0 ? updateData[0] : null;
-
       // Vérification après sauvegarde
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
         .select('description')
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .maybeSingle();
 
       if (verificationError) {
         setDebugInfo(prev => ({
@@ -84,12 +84,12 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw verificationError;
       }
 
-      const finalDescription = verificationData && verificationData.length > 0 ? verificationData[0].description : null;
+      const finalDescription = verificationData?.description;
 
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
-        updateResponse: updatedDescription,
+        updateResponse: updateData,
         verificationResult: {
           data: verificationData,
           currentDescription: finalDescription,
