@@ -17,6 +17,12 @@ interface ExistingPlaceAlertProps {
 }
 
 export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
+  // Vérifie si la description est réellement présente (pas null, undefined, ou chaîne vide)
+  const hasDescription = place.description && place.description !== '[]' && place.description !== '';
+  
+  // Vérifie si la photo Bing est réellement présente
+  const hasBingPhoto = place.photobing1 && place.photobing1 !== '';
+
   return (
     <Alert className="max-w-2xl mx-auto">
       <Info className="h-4 w-4" />
@@ -24,10 +30,10 @@ export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
         <span>{place.title}</span>
         <div className="flex gap-2">
           <Badge 
-            variant={place.description ? "default" : "destructive"}
+            variant={hasDescription ? "default" : "destructive"}
             className="flex items-center gap-1"
           >
-            {place.description ? (
+            {hasDescription ? (
               <CheckCircle className="h-3 w-3" />
             ) : (
               <XCircle className="h-3 w-3" />
@@ -35,10 +41,10 @@ export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
             Description
           </Badge>
           <Badge 
-            variant={place.photobing1 ? "default" : "destructive"}
+            variant={hasBingPhoto ? "default" : "destructive"}
             className="flex items-center gap-1"
           >
-            {place.photobing1 ? (
+            {hasBingPhoto ? (
               <CheckCircle className="h-3 w-3" />
             ) : (
               <XCircle className="h-3 w-3" />

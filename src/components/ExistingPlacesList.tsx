@@ -43,16 +43,22 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       }
 
       if (filters.hasDescription) {
-        supabaseQuery = supabaseQuery.not('description', 'is', null);
+        supabaseQuery = supabaseQuery
+          .not('description', 'is', null)
+          .not('description', 'eq', '')
+          .not('description', 'eq', '[]');
       }
 
       if (filters.hasBingPhoto) {
-        supabaseQuery = supabaseQuery.not('photobing1', 'is', null);
+        supabaseQuery = supabaseQuery
+          .not('photobing1', 'is', null)
+          .not('photobing1', 'eq', '');
       }
 
       const { data, error } = await supabaseQuery;
 
       if (error) throw error;
+      console.log("Résultats de la requête:", data); // Pour le débogage
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
