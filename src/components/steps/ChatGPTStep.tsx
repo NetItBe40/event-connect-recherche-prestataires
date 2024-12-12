@@ -26,7 +26,19 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone, desc
 
   useEffect(() => {
     if (initialDescription) {
-      setDescription(initialDescription);
+      try {
+        // Si la description est un tableau JSON, prendre le premier élément non nul
+        const parsedDescription = JSON.parse(initialDescription);
+        if (Array.isArray(parsedDescription)) {
+          const firstValidDescription = parsedDescription.find(desc => desc && typeof desc === 'string');
+          setDescription(firstValidDescription || "");
+        } else {
+          setDescription(initialDescription);
+        }
+      } catch {
+        // Si le parsing échoue, utiliser la description telle quelle
+        setDescription(initialDescription);
+      }
     }
   }, [initialDescription]);
 
@@ -59,10 +71,13 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       setDescription(generatedDescription);
 
       if (placeId) {
+        const descriptionArray = [generatedDescription];
+        console.log("Sauvegarde de la description:", descriptionArray);
+        
         const { error: updateError } = await supabase
           .from('places')
           .update({ 
-            description: generatedDescription 
+            description: JSON.stringify(descriptionArray)
           })
           .eq('id', placeId);
 
@@ -95,9 +110,14 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
     }
 
     try {
+      const descriptionArray = [description];
+      console.log("Sauvegarde manuelle de la description:", descriptionArray);
+      
       const { error } = await supabase
         .from('places')
-        .update({ description })
+        .update({ 
+          description: JSON.stringify(descriptionArray)
+        })
         .eq('id', placeId);
 
       if (error) throw error;
