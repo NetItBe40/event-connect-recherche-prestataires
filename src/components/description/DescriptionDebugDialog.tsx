@@ -4,15 +4,10 @@ interface DebugInfo {
   step: string;
   placeId?: string;
   descriptionToSave?: string;
-  descriptionArray?: string[];
-  jsonString?: string;
-  currentDescription?: string;
   supabaseResponse?: any;
   verificationResult?: {
     data?: any;
-    error?: any;
     currentDescription?: string;
-    parsedDescription?: any[];
   };
   error?: any;
 }
@@ -50,53 +45,17 @@ export function DescriptionDebugDialog({
               </div>
 
               <div>
-                <h3 className="font-bold">Description à sauvegarder</h3>
+                <h3 className="font-bold">Description sauvegardée</h3>
                 <pre className="bg-slate-100 p-2 rounded mt-1 whitespace-pre-wrap">
                   {debugInfo.descriptionToSave}
                 </pre>
               </div>
 
-              <div>
-                <h3 className="font-bold">Tableau de description</h3>
-                <pre className="bg-slate-100 p-2 rounded mt-1">
-                  {JSON.stringify(debugInfo.descriptionArray, null, 2)}
-                </pre>
-              </div>
-
-              <div>
-                <h3 className="font-bold">JSON envoyé à Supabase</h3>
-                <pre className="bg-slate-100 p-2 rounded mt-1">
-                  {debugInfo.jsonString}
-                </pre>
-              </div>
-
-              {debugInfo.currentDescription && (
+              {debugInfo.verificationResult?.currentDescription && (
                 <div>
-                  <h3 className="font-bold">Description avant mise à jour</h3>
-                  <pre className="bg-slate-100 p-2 rounded mt-1">
-                    {debugInfo.currentDescription}
-                  </pre>
-                </div>
-              )}
-
-              {debugInfo.verificationResult && (
-                <div>
-                  <h3 className="font-bold">Description actuellement en base</h3>
+                  <h3 className="font-bold">Description en base</h3>
                   <pre className="bg-slate-100 p-2 rounded mt-1">
                     {debugInfo.verificationResult.currentDescription}
-                  </pre>
-                  <h3 className="font-bold mt-2">Description parsée</h3>
-                  <pre className="bg-slate-100 p-2 rounded mt-1">
-                    {JSON.stringify(debugInfo.verificationResult.parsedDescription, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {debugInfo.supabaseResponse && (
-                <div>
-                  <h3 className="font-bold">Réponse de Supabase</h3>
-                  <pre className="bg-slate-100 p-2 rounded mt-1">
-                    {JSON.stringify(debugInfo.supabaseResponse, null, 2)}
                   </pre>
                 </div>
               )}

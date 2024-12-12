@@ -1,23 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import { parseDescription, formatDescriptionForSave } from "@/utils/descriptionFormatter";
 import { DescriptionDebugDialog } from "@/components/description/DescriptionDebugDialog";
 
 export function useDescription(placeId?: string, initialDescription?: string) {
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialDescription || "");
   const [error, setError] = useState<string | null>(null);
   const [debugDialog, setDebugDialog] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>({});
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (initialDescription) {
-      const parsedDescription = parseDescription(initialDescription);
-      setDescription(parsedDescription);
-      console.log("Description initiale chargée:", parsedDescription);
-    }
-  }, [initialDescription]);
 
   const handleSaveDescription = async () => {
     if (!placeId) {
@@ -32,42 +23,18 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       
-      // Récupérer la description actuelle
-      const { data: currentData, error: currentError } = await supabase
-        .from('places')
-        .select('description')
-        .eq('id', placeId)
-        .single();
-
-      if (currentError) {
-        throw currentError;
-      }
-
-      const currentDescription = currentData?.description;
-      
-      // Formater la nouvelle description en préservant le format existant
-      const descriptionArray = formatDescriptionForSave(description, currentDescription);
-      
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
         descriptionToSave: description,
-        descriptionArray,
-        jsonString: JSON.stringify(descriptionArray),
-        currentDescription: currentDescription
       });
 
-      const { error: updateError, data: updateData } = await supabase
+      const { error: updateError } = await supabase
         .from('places')
-        .update({ 
-          description: JSON.stringify(descriptionArray)
-        })
-        .eq('id', placeId)
-        .select();
+        .update({ description })
+        .eq('id', placeId);
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
@@ -75,9 +42,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .eq('id', placeId)
         .single();
 
-      if (verificationError) {
-        throw verificationError;
-      }
+      if (verificationError) throw verificationError;
 
       setDebugInfo(prev => ({
         ...prev,
@@ -85,9 +50,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         supabaseResponse: { data: verificationData, error: updateError },
         verificationResult: {
           data: verificationData,
-          error: verificationError,
-          currentDescription: verificationData?.description,
-          parsedDescription: JSON.parse(verificationData?.description || '[]')
+          currentDescription: verificationData?.description
         }
       }));
 
