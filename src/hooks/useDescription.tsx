@@ -19,47 +19,33 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
-      
-      // Vérification de l'état actuel
-      const { data: currentData, error: fetchError } = await supabase
-        .from('places')
-        .select('description')
-        .eq('id', placeId)
-        .single();
-
-      if (fetchError) {
-        throw new Error("Erreur lors de la récupération des données actuelles");
-      }
+      console.log("Description à sauvegarder:", description);
 
       // Mise à jour de la description
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('places')
-        .update({ description })
-        .eq('id', placeId);
+        .update({
+          description: description.trim() // Assurons-nous qu'il n'y a pas d'espaces inutiles
+        })
+        .eq('id', placeId)
+        .select()
+        .single();
 
       if (updateError) {
+        console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
 
-      // Vérification après mise à jour
-      const { data: verificationData, error: verificationError } = await supabase
-        .from('places')
-        .select('description')
-        .eq('id', placeId)
-        .single();
-
-      if (verificationError) {
-        throw new Error("Erreur lors de la vérification finale");
-      }
+      console.log("Résultat de la mise à jour:", updateData);
 
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
-        currentDescription: currentData?.description,
         descriptionToSave: description,
+        updateResponse: updateData,
         verificationResult: {
-          data: verificationData,
-          currentDescription: verificationData?.description
+          data: updateData,
+          currentDescription: updateData?.description
         }
       });
 
