@@ -43,17 +43,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Description actuelle avant la sauvegarde:", description);
       const descriptionArray = description.split('\n\n').filter(Boolean);
-      console.log("Tentative de sauvegarde manuelle de la description:", {
-        placeId,
-        description: descriptionArray,
-        descriptionJson: JSON.stringify(descriptionArray),
-        currentState: {
-          description,
-          type: typeof description,
-          isArray: Array.isArray(description),
-          paragraphs: descriptionArray
-        }
-      });
       
       const { data, error } = await supabase
         .from('places')
