@@ -27,14 +27,18 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone, desc
   useEffect(() => {
     if (initialDescription) {
       try {
+        console.log("Description initiale reçue:", initialDescription);
         const parsedDescription = JSON.parse(initialDescription);
+        console.log("Description parsée:", parsedDescription);
         if (Array.isArray(parsedDescription)) {
           const firstValidDescription = parsedDescription.find(desc => desc && typeof desc === 'string');
+          console.log("Première description valide trouvée:", firstValidDescription);
           setDescription(firstValidDescription || "");
         } else {
           setDescription(initialDescription);
         }
-      } catch {
+      } catch (error) {
+        console.log("Erreur lors du parsing de la description:", error);
         setDescription(initialDescription);
       }
     }
@@ -70,7 +74,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 
       if (placeId) {
         const descriptionArray = [generatedDescription];
-        console.log("Tentative de sauvegarde de la description:", {
+        console.log("Tentative de sauvegarde de la description générée:", {
           placeId,
           description: descriptionArray,
           descriptionJson: JSON.stringify(descriptionArray),
@@ -85,7 +89,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           .eq('id', placeId)
           .select();
 
-        console.log("Résultat de la sauvegarde:", { data, error: updateError });
+        console.log("Résultat de la sauvegarde de la description générée:", { data, error: updateError });
 
         if (updateError) {
           console.error("Erreur lors de la mise à jour:", updateError);
@@ -116,12 +120,17 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
     }
 
     try {
+      console.log("Description actuelle avant la sauvegarde:", description);
       const descriptionArray = [description];
       console.log("Tentative de sauvegarde manuelle de la description:", {
         placeId,
         description: descriptionArray,
         descriptionJson: JSON.stringify(descriptionArray),
-        query: `UPDATE places SET description = '${JSON.stringify(descriptionArray)}' WHERE id = '${placeId}'`
+        currentState: {
+          description,
+          type: typeof description,
+          isArray: Array.isArray(description),
+        }
       });
       
       const { data, error } = await supabase
