@@ -9,8 +9,10 @@ interface DebugInfo {
   verificationResult?: {
     data?: any;
     currentDescription?: string;
+    rawResponse?: any;
   };
   error?: any;
+  rawResponse?: any;
 }
 
 interface DescriptionDebugDialogProps {
@@ -37,6 +39,15 @@ export function DescriptionDebugDialog({
                   {debugInfo.step}
                 </pre>
               </div>
+
+              {debugInfo.error && (
+                <div>
+                  <h3 className="font-bold text-red-500">Erreur</h3>
+                  <pre className="bg-slate-100 p-2 rounded mt-1">
+                    {JSON.stringify(debugInfo.error, null, 2)}
+                  </pre>
+                </div>
+              )}
               
               <div>
                 <h3 className="font-bold">ID du lieu</h3>
@@ -77,11 +88,11 @@ export function DescriptionDebugDialog({
                 </div>
               )}
 
-              {debugInfo.error && (
+              {debugInfo.rawResponse && (
                 <div>
-                  <h3 className="font-bold text-red-500">Erreur</h3>
+                  <h3 className="font-bold">Réponse brute</h3>
                   <pre className="bg-slate-100 p-2 rounded mt-1">
-                    {JSON.stringify(debugInfo.error, null, 2)}
+                    {JSON.stringify(debugInfo.rawResponse, null, 2)}
                   </pre>
                 </div>
               )}

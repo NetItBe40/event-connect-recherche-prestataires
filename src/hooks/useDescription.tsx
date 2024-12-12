@@ -33,7 +33,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         setDebugInfo({
           step: "Erreur lors de la vérification initiale",
           placeId,
-          error: checkError
+          error: checkError,
+          rawResponse: currentData
         });
         throw checkError;
       }
@@ -45,6 +46,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         placeId,
         descriptionToSave: description,
         currentDescription,
+        rawResponse: currentData
       });
 
       // Sauvegarde de la nouvelle description
@@ -58,7 +60,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         setDebugInfo(prev => ({
           ...prev,
           step: "Erreur lors de la mise à jour",
-          error: updateError
+          error: updateError,
+          rawResponse: updateData
         }));
         throw updateError;
       }
@@ -75,7 +78,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         setDebugInfo(prev => ({
           ...prev,
           step: "Erreur lors de la vérification finale",
-          error: verificationError
+          error: verificationError,
+          rawResponse: verificationData
         }));
         throw verificationError;
       }
@@ -88,7 +92,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         updateResponse: updatedDescription,
         verificationResult: {
           data: verificationData,
-          currentDescription: finalDescription
+          currentDescription: finalDescription,
+          rawResponse: verificationData
         }
       }));
 
