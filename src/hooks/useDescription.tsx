@@ -19,9 +19,11 @@ export function useDescription(placeId?: string, initialDescription?: string) {
             .filter(item => item && typeof item === 'string' && item !== 't')
             .join('\n\n');
           setDescription(text);
+          console.log("Description initiale chargée:", text);
         }
       } catch (error) {
         setDescription(initialDescription);
+        console.log("Description initiale (format brut):", initialDescription);
       }
     }
   }, [initialDescription]);
@@ -31,16 +33,17 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de sauvegarder la description",
+        description: "Impossible de sauvegarder la description : ID manquant",
       });
       return;
     }
 
     try {
-      // Préparation des données pour la sauvegarde
-      const descriptionArray = [description];
+      console.log("Début de la sauvegarde pour le lieu:", placeId);
       
-      // Stockage des informations de debug
+      const descriptionArray = [description];
+      console.log("Description à sauvegarder:", descriptionArray);
+      
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
@@ -49,7 +52,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         jsonString: JSON.stringify(descriptionArray)
       });
       
-      // Tentative de sauvegarde
       const { data, error: updateError } = await supabase
         .from('places')
         .update({ 
@@ -58,36 +60,44 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .eq('id', placeId)
         .select();
 
-      // Mise à jour des informations de debug avec le résultat
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
         supabaseResponse: { data, error: updateError }
       }));
 
-      // Affichage de la modale de debug
-      setDebugDialog(true);
+      if (updateError) {
+        console.error("Erreur Supabase:", updateError);
+        throw updateError;
+      }
 
-      if (updateError) throw updateError;
-
+      console.log("Sauvegarde réussie:", data);
+      
       toast({
         title: "Succès",
-        description: "La description a été sauvegardée",
+        description: "La description a été sauvegardée avec succès",
       });
+
+      // Afficher la modale de debug après une sauvegarde réussie
+      setDebugDialog(true);
+
     } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
       setError("Impossible de sauvegarder la description");
+      
       setDebugInfo(prev => ({
         ...prev,
         step: "Erreur",
         error
       }));
-      setDebugDialog(true);
       
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de sauvegarder la description",
+        description: "Impossible de sauvegarder la description. Veuillez réessayer.",
       });
+      
+      setDebugDialog(true);
     }
   };
 
