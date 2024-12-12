@@ -32,17 +32,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       
-      const descriptionArray = formatDescriptionForSave(description);
-      console.log("Description à sauvegarder:", descriptionArray);
-      
-      setDebugInfo({
-        step: "Début de la sauvegarde",
-        placeId,
-        descriptionToSave: description,
-        descriptionArray,
-        jsonString: JSON.stringify(descriptionArray)
-      });
-
+      // Récupérer la description actuelle
       const { data: currentData, error: currentError } = await supabase
         .from('places')
         .select('description')
@@ -53,18 +43,27 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw currentError;
       }
 
-      setDebugInfo(prev => ({
-        ...prev,
-        step: "Description actuelle",
-        currentDescription: currentData?.description
-      }));
+      const currentDescription = currentData?.description;
       
-      const { error: updateError } = await supabase
+      // Formater la nouvelle description en préservant le format existant
+      const descriptionArray = formatDescriptionForSave(description, currentDescription);
+      
+      setDebugInfo({
+        step: "Début de la sauvegarde",
+        placeId,
+        descriptionToSave: description,
+        descriptionArray,
+        jsonString: JSON.stringify(descriptionArray),
+        currentDescription: currentDescription
+      });
+
+      const { error: updateError, data: updateData } = await supabase
         .from('places')
         .update({ 
           description: JSON.stringify(descriptionArray)
         })
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .select();
 
       if (updateError) {
         throw updateError;
