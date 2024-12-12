@@ -72,7 +72,9 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         const descriptionArray = [generatedDescription];
         console.log("Tentative de sauvegarde de la description:", {
           placeId,
-          description: descriptionArray
+          description: descriptionArray,
+          descriptionJson: JSON.stringify(descriptionArray),
+          query: `UPDATE places SET description = '${JSON.stringify(descriptionArray)}' WHERE id = '${placeId}'`
         });
         
         const { data, error: updateError } = await supabase
@@ -117,7 +119,9 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       const descriptionArray = [description];
       console.log("Tentative de sauvegarde manuelle de la description:", {
         placeId,
-        description: descriptionArray
+        description: descriptionArray,
+        descriptionJson: JSON.stringify(descriptionArray),
+        query: `UPDATE places SET description = '${JSON.stringify(descriptionArray)}' WHERE id = '${placeId}'`
       });
       
       const { data, error } = await supabase
