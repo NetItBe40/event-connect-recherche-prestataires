@@ -75,32 +75,36 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       setDescription(generatedDescription);
 
       if (placeId) {
-        const descriptionArray = [generatedDescription];
-        
-        console.log("Sauvegarde de la description:", {
-          placeId,
-          descriptionArray
-        });
-
-        const { error: updateError, data } = await supabase
+        const { error: updateError } = await supabase
           .from('places')
           .update({ 
-            description: JSON.stringify(descriptionArray)
+            description: JSON.stringify([generatedDescription])
           })
-          .eq('id', placeId)
-          .select();
+          .eq('id', placeId);
 
         if (updateError) {
           console.error("Erreur lors de la sauvegarde:", updateError);
           throw updateError;
         }
 
-        console.log("Description sauvegardée avec succès:", data);
+        // Vérification de la mise à jour
+        const { data: verificationData, error: verificationError } = await supabase
+          .from('places')
+          .select('description')
+          .eq('id', placeId)
+          .single();
+
+        if (verificationError) {
+          console.error("Erreur lors de la vérification:", verificationError);
+          throw verificationError;
+        }
+
+        console.log("Description sauvegardée vérifiée:", verificationData);
 
         toast({
           title: "Description générée et sauvegardée",
           description: "La description a été générée et sauvegardée avec succès",
-          variant: "default"  // Changed from "success" to "default"
+          variant: "default"
         });
       } else {
         toast({
