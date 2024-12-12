@@ -42,7 +42,9 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     try {
       console.log("Description actuelle avant la sauvegarde:", description);
-      const descriptionArray = description.split('\n\n').filter(Boolean);
+      
+      // Sauvegarde directe de la description actuelle comme premier élément du tableau
+      const descriptionArray = [description];
       
       const { data, error } = await supabase
         .from('places')
