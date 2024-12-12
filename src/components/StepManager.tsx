@@ -12,10 +12,12 @@ export function StepManager() {
   const { currentStep, selectedPlace, results, isLoading } = useStepManagerState();
   const { handleSearch, handlePlaceSelect, handleNextStep, handlePreviousStep } = useStepManagerActions();
 
+  console.log("StepManager rendering", { currentStep, selectedPlace, results, isLoading });
+
   return (
     <div className="container py-8 space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-google-blue">
+        <h1 className="text-3xl font-bold">
           Traitement des fiches prestataires
         </h1>
         <p className="text-gray-600">
@@ -25,8 +27,8 @@ export function StepManager() {
 
       <StepProgress currentStep={currentStep} />
 
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
           <StepContent 
             currentStep={currentStep}
             selectedPlace={selectedPlace}
@@ -37,7 +39,7 @@ export function StepManager() {
           />
         </div>
 
-        <div className="col-span-1 space-y-4">
+        <div className="space-y-4">
           <PlaceSummary selectedPlace={selectedPlace} />
 
           <div className="flex gap-4">
@@ -52,7 +54,7 @@ export function StepManager() {
             )}
             <Button
               onClick={handleNextStep}
-              className="flex-1 bg-google-blue hover:bg-google-blue/90"
+              className="flex-1"
               disabled={!selectedPlace && currentStep === 0}
             >
               Étape suivante
