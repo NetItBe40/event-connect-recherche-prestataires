@@ -52,26 +52,40 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         jsonString: JSON.stringify(descriptionArray)
       });
       
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('places')
         .update({ 
           description: JSON.stringify(descriptionArray)
         })
+        .eq('id', placeId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Vérification de la description après la sauvegarde
+      const { data: verificationData, error: verificationError } = await supabase
+        .from('places')
+        .select('description')
         .eq('id', placeId)
-        .select();
+        .single();
 
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
-        supabaseResponse: { data, error: updateError }
+        supabaseResponse: { data: verificationData, error: updateError },
+        verificationResult: {
+          data: verificationData,
+          error: verificationError,
+          currentDescription: verificationData?.description
+        }
       }));
 
-      if (updateError) {
-        console.error("Erreur Supabase:", updateError);
-        throw updateError;
+      if (verificationError) {
+        throw verificationError;
       }
 
-      console.log("Sauvegarde réussie:", data);
+      console.log("Sauvegarde réussie. Description actuelle:", verificationData);
       
       toast({
         title: "Succès",
@@ -142,6 +156,15 @@ export function useDescription(placeId?: string, initialDescription?: string) {
                   {debugInfo.jsonString}
                 </pre>
               </div>
+
+              {debugInfo.verificationResult && (
+                <div>
+                  <h3 className="font-bold">Description actuellement en base</h3>
+                  <pre className="bg-slate-100 p-2 rounded mt-1">
+                    {JSON.stringify(debugInfo.verificationResult.currentDescription, null, 2)}
+                  </pre>
+                </div>
+              )}
 
               {debugInfo.supabaseResponse && (
                 <div>
