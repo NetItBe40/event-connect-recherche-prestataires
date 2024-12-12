@@ -36,6 +36,13 @@ export function ChatGPTStep({
     DebugDialog
   } = useDescription(placeId, initialDescription);
 
+  console.log("ChatGPTStep - État initial:", {
+    placeId,
+    initialDescription,
+    currentDescription: description,
+    error
+  });
+
   const handleGenerateDescription = async () => {
     setIsLoading(true);
     
@@ -55,17 +62,26 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 5. Expérience et réputation
 6. Informations pratiques`;
 
+      console.log("Génération de la description - Prompt:", prompt);
+
       const generatedDescription = await generateDescription(prompt);
       
       if (!generatedDescription) {
         throw new Error("Aucune description n'a été générée");
       }
 
+      console.log("Description générée:", generatedDescription);
+
       setDescription(generatedDescription);
 
       if (placeId) {
         const descriptionArray = [generatedDescription];
         
+        console.log("Sauvegarde de la description:", {
+          placeId,
+          descriptionArray
+        });
+
         const { error: updateError } = await supabase
           .from('places')
           .update({ 
@@ -74,8 +90,11 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           .eq('id', placeId);
 
         if (updateError) {
+          console.error("Erreur lors de la sauvegarde:", updateError);
           throw updateError;
         }
+
+        console.log("Description sauvegardée avec succès");
 
         toast({
           title: "Description générée",
@@ -83,7 +102,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         });
       }
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Erreur lors de la génération:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
