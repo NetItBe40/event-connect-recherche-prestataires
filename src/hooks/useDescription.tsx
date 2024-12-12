@@ -25,42 +25,32 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       console.log("Description à sauvegarder:", description);
 
-      // Vérifier d'abord si l'enregistrement existe
-      const { data: existingPlace, error: checkError } = await supabase
-        .from('places')
-        .select('id, description')
-        .eq('id', placeId)
-        .single();
-
-      if (checkError) {
-        throw new Error(`Erreur lors de la vérification: ${checkError.message}`);
-      }
-
-      if (!existingPlace) {
-        throw new Error("Lieu non trouvé");
-      }
-
-      // Mise à jour avec la nouvelle description
+      // Update the description directly
       const { data: updateData, error: updateError } = await supabase
         .from('places')
         .update({ description })
         .eq('id', placeId)
-        .select()
-        .single();
+        .select('*');
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
 
+      if (!updateData || updateData.length === 0) {
+        throw new Error("Aucun enregistrement mis à jour");
+      }
+
+      const updatedPlace = updateData[0];
+
       setDebugInfo({
         step: "Sauvegarde réussie",
         placeId,
         descriptionToSave: description,
-        updateResponse: updateData,
+        updateResponse: updatedPlace,
         verificationResult: {
-          data: updateData,
-          currentDescription: updateData.description
+          data: updatedPlace,
+          currentDescription: updatedPlace.description
         }
       });
 
