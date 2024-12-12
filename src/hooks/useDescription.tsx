@@ -34,24 +34,10 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
       if (checkError) {
         console.error("Erreur lors de la vérification initiale:", checkError);
-        setDebugInfo({
-          step: "Erreur lors de la vérification initiale",
-          placeId,
-          error: checkError,
-          rawResponse: currentData
-        });
         throw checkError;
       }
 
       console.log("Description actuelle:", currentData?.description);
-
-      setDebugInfo({
-        step: "Début de la sauvegarde",
-        placeId,
-        descriptionToSave: description,
-        currentDescription: currentData?.description,
-        rawResponse: currentData
-      });
 
       // Sauvegarde de la nouvelle description
       const { data: updateData, error: updateError } = await supabase
@@ -62,12 +48,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
-        setDebugInfo(prev => ({
-          ...prev,
-          step: "Erreur lors de la mise à jour",
-          error: updateError,
-          rawResponse: updateData
-        }));
         throw updateError;
       }
 
@@ -82,27 +62,20 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
       if (verificationError) {
         console.error("Erreur lors de la vérification finale:", verificationError);
-        setDebugInfo(prev => ({
-          ...prev,
-          step: "Erreur lors de la vérification finale",
-          error: verificationError,
-          rawResponse: verificationData
-        }));
         throw verificationError;
       }
 
-      console.log("Description après sauvegarde:", verificationData?.description);
-
-      setDebugInfo(prev => ({
-        ...prev,
-        step: "Après la sauvegarde",
+      setDebugInfo({
+        step: "Sauvegarde réussie",
+        placeId,
+        descriptionToSave: description,
+        currentDescription: currentData?.description,
         updateResponse: updateData,
         verificationResult: {
           data: verificationData,
-          currentDescription: verificationData?.description,
-          rawResponse: verificationData
+          currentDescription: verificationData?.description
         }
-      }));
+      });
       
       toast({
         title: "Succès",
