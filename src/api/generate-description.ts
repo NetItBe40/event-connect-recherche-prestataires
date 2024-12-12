@@ -32,11 +32,11 @@ export async function generateDescription(prompt: string) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4", // Using the standard GPT-4 model
+        model: "gpt-4",
         messages: [
           {
             role: "system",
-            content: "Tu es un expert en rédaction de descriptions professionnelles pour des prestataires événementiels. Tu dois rédiger des descriptions claires, engageantes et optimisées pour le SEO."
+            content: "Tu es un expert en rédaction de descriptions professionnelles pour des prestataires événementiels. Rédige une description engageante qui met en valeur les points forts de l'établissement, son ambiance et ses services. Ne mentionne pas explicitement l'optimisation SEO ou les mots-clés dans la description."
           },
           {
             role: "user",
@@ -44,14 +44,13 @@ export async function generateDescription(prompt: string) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1000  // Doublé de 500 à 1000 pour permettre des descriptions plus longues
+        max_tokens: 1000
       });
 
       return completion.choices[0].message.content;
     } catch (openaiError: any) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
-      // Check for specific error types
       if (openaiError?.status === 429) {
         if (openaiError.message?.includes("quota")) {
           throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
