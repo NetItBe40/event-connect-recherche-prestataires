@@ -31,9 +31,12 @@ export function ChatGPTStep({ placeId, title, address, type, rating, phone, desc
         const parsedDescription = JSON.parse(initialDescription);
         console.log("Description parsée:", parsedDescription);
         if (Array.isArray(parsedDescription)) {
-          const firstValidDescription = parsedDescription.find(desc => desc && typeof desc === 'string');
-          console.log("Première description valide trouvée:", firstValidDescription);
-          setDescription(firstValidDescription || "");
+          // Filtrer les valeurs null et non-string, puis joindre avec des sauts de ligne
+          const validDescriptions = parsedDescription
+            .filter(desc => desc && typeof desc === 'string' && desc !== 't')
+            .join('\n\n');
+          console.log("Descriptions valides concaténées:", validDescriptions);
+          setDescription(validDescriptions || "");
         } else {
           setDescription(initialDescription);
         }
@@ -77,8 +80,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         console.log("Tentative de sauvegarde de la description générée:", {
           placeId,
           description: descriptionArray,
-          descriptionJson: JSON.stringify(descriptionArray),
-          query: `UPDATE places SET description = '${JSON.stringify(descriptionArray)}' WHERE id = '${placeId}'`
+          descriptionJson: JSON.stringify(descriptionArray)
         });
         
         const { data, error: updateError } = await supabase
@@ -121,7 +123,8 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
 
     try {
       console.log("Description actuelle avant la sauvegarde:", description);
-      const descriptionArray = [description];
+      // Séparer la description en paragraphes et créer un tableau
+      const descriptionArray = description.split('\n\n').filter(Boolean);
       console.log("Tentative de sauvegarde manuelle de la description:", {
         placeId,
         description: descriptionArray,
@@ -130,6 +133,7 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           description,
           type: typeof description,
           isArray: Array.isArray(description),
+          paragraphs: descriptionArray
         }
       });
       
