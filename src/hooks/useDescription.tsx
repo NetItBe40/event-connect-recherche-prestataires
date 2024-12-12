@@ -21,14 +21,11 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       console.log("Description à sauvegarder:", description);
 
-      // Mise à jour directe avec vérification du résultat
       const { data: updateData, error: updateError } = await supabase
         .from('places')
-        .update({
-          description: description.trim()
-        })
+        .update({ description })
         .eq('id', placeId)
-        .select('*');
+        .select();
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour:", updateError);
