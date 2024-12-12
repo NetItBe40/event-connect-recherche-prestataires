@@ -22,9 +22,15 @@ export const formatDescriptionForSave = (description: string, existingDescriptio
     try {
       const existingArray = JSON.parse(existingDescription);
       if (Array.isArray(existingArray)) {
-        // Mettre à jour uniquement la première entrée
-        existingArray[0] = cleanDescription;
-        return existingArray;
+        // Créer un nouveau tableau avec la nouvelle description en première position
+        // tout en préservant les autres éléments
+        return [
+          cleanDescription,
+          existingArray[1] || null,
+          existingArray[2] || null,
+          existingArray[3] || "t",
+          existingArray[4] || "t"
+        ];
       }
     } catch (error) {
       console.error("Erreur lors du parsing de la description existante:", error);
@@ -32,5 +38,5 @@ export const formatDescriptionForSave = (description: string, existingDescriptio
   }
   
   // Si pas de description existante ou erreur de parsing, créer un nouveau tableau
-  return [cleanDescription, null, "t", "t"];
+  return [cleanDescription, null, null, "t", "t"];
 };
