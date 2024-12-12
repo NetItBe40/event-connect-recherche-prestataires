@@ -12,6 +12,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
   const handleSaveDescription = async () => {
     if (!placeId) {
+      console.error("Erreur: ID manquant");
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -22,6 +23,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
 
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
+      console.log("Description à sauvegarder:", description);
       
       // Vérification de la description actuelle
       const { data: currentData, error: checkError } = await supabase
@@ -31,6 +33,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .single();
 
       if (checkError) {
+        console.error("Erreur lors de la vérification initiale:", checkError);
         setDebugInfo({
           step: "Erreur lors de la vérification initiale",
           placeId,
@@ -39,6 +42,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         });
         throw checkError;
       }
+
+      console.log("Description actuelle:", currentData?.description);
 
       setDebugInfo({
         step: "Début de la sauvegarde",
@@ -56,6 +61,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .select();
 
       if (updateError) {
+        console.error("Erreur lors de la mise à jour:", updateError);
         setDebugInfo(prev => ({
           ...prev,
           step: "Erreur lors de la mise à jour",
@@ -65,6 +71,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         throw updateError;
       }
 
+      console.log("Mise à jour effectuée:", updateData);
+
       // Vérification après sauvegarde
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
@@ -73,6 +81,7 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .single();
 
       if (verificationError) {
+        console.error("Erreur lors de la vérification finale:", verificationError);
         setDebugInfo(prev => ({
           ...prev,
           step: "Erreur lors de la vérification finale",
@@ -81,6 +90,8 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         }));
         throw verificationError;
       }
+
+      console.log("Description après sauvegarde:", verificationData?.description);
 
       setDebugInfo(prev => ({
         ...prev,
@@ -92,8 +103,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
           rawResponse: verificationData
         }
       }));
-
-      console.log("Sauvegarde réussie. Description actuelle:", verificationData?.description);
       
       toast({
         title: "Succès",
