@@ -41,17 +41,37 @@ export function useDescription(placeId?: string, initialDescription?: string) {
     try {
       console.log("Début de la sauvegarde pour le lieu:", placeId);
       
-      const descriptionArray = [description];
+      // Nettoyer la description et la formater en tableau
+      const cleanDescription = description.trim();
+      const descriptionArray = [cleanDescription];
       console.log("Description à sauvegarder:", descriptionArray);
       
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
-        descriptionToSave: description,
+        descriptionToSave: cleanDescription,
         descriptionArray,
         jsonString: JSON.stringify(descriptionArray)
       });
+
+      // Récupérer la description actuelle avant la mise à jour
+      const { data: currentData, error: currentError } = await supabase
+        .from('places')
+        .select('description')
+        .eq('id', placeId)
+        .single();
+
+      if (currentError) {
+        throw currentError;
+      }
+
+      setDebugInfo(prev => ({
+        ...prev,
+        step: "Description actuelle",
+        currentDescription: currentData?.description
+      }));
       
+      // Effectuer la mise à jour
       const { error: updateError } = await supabase
         .from('places')
         .update({ 
@@ -70,6 +90,10 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .eq('id', placeId)
         .single();
 
+      if (verificationError) {
+        throw verificationError;
+      }
+
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
@@ -77,13 +101,10 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         verificationResult: {
           data: verificationData,
           error: verificationError,
-          currentDescription: verificationData?.description
+          currentDescription: verificationData?.description,
+          parsedDescription: JSON.parse(verificationData?.description || '[]')
         }
       }));
-
-      if (verificationError) {
-        throw verificationError;
-      }
 
       console.log("Sauvegarde réussie. Description actuelle:", verificationData);
       
@@ -92,7 +113,6 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         description: "La description a été sauvegardée avec succès",
       });
 
-      // Afficher la modale de debug après une sauvegarde réussie
       setDebugDialog(true);
 
     } catch (error) {
@@ -157,11 +177,24 @@ export function useDescription(placeId?: string, initialDescription?: string) {
                 </pre>
               </div>
 
+              {debugInfo.currentDescription && (
+                <div>
+                  <h3 className="font-bold">Description avant mise à jour</h3>
+                  <pre className="bg-slate-100 p-2 rounded mt-1">
+                    {debugInfo.currentDescription}
+                  </pre>
+                </div>
+              )}
+
               {debugInfo.verificationResult && (
                 <div>
                   <h3 className="font-bold">Description actuellement en base</h3>
                   <pre className="bg-slate-100 p-2 rounded mt-1">
-                    {JSON.stringify(debugInfo.verificationResult.currentDescription, null, 2)}
+                    {debugInfo.verificationResult.currentDescription}
+                  </pre>
+                  <h3 className="font-bold mt-2">Description parsée</h3>
+                  <pre className="bg-slate-100 p-2 rounded mt-1">
+                    {JSON.stringify(debugInfo.verificationResult.parsedDescription, null, 2)}
                   </pre>
                 </div>
               )}
