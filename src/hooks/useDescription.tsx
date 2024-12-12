@@ -27,16 +27,24 @@ export function useDescription(placeId?: string, initialDescription?: string) {
       const { data: currentData, error: checkError } = await supabase
         .from('places')
         .select('description')
-        .eq('id', placeId)
-        .single();
+        .eq('id', placeId);
 
-      if (checkError) throw checkError;
+      if (checkError) {
+        setDebugInfo({
+          step: "Erreur lors de la vérification initiale",
+          placeId,
+          error: checkError
+        });
+        throw checkError;
+      }
+
+      const currentDescription = currentData && currentData.length > 0 ? currentData[0].description : null;
 
       setDebugInfo({
         step: "Début de la sauvegarde",
         placeId,
         descriptionToSave: description,
-        currentDescription: currentData?.description,
+        currentDescription,
       });
 
       // Sauvegarde de la nouvelle description
@@ -44,31 +52,47 @@ export function useDescription(placeId?: string, initialDescription?: string) {
         .from('places')
         .update({ description })
         .eq('id', placeId)
-        .select()
-        .single();
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        setDebugInfo(prev => ({
+          ...prev,
+          step: "Erreur lors de la mise à jour",
+          error: updateError
+        }));
+        throw updateError;
+      }
+
+      const updatedDescription = updateData && updateData.length > 0 ? updateData[0] : null;
 
       // Vérification après sauvegarde
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
         .select('description')
-        .eq('id', placeId)
-        .single();
+        .eq('id', placeId);
 
-      if (verificationError) throw verificationError;
+      if (verificationError) {
+        setDebugInfo(prev => ({
+          ...prev,
+          step: "Erreur lors de la vérification finale",
+          error: verificationError
+        }));
+        throw verificationError;
+      }
+
+      const finalDescription = verificationData && verificationData.length > 0 ? verificationData[0].description : null;
 
       setDebugInfo(prev => ({
         ...prev,
         step: "Après la sauvegarde",
-        updateResponse: updateData,
+        updateResponse: updatedDescription,
         verificationResult: {
           data: verificationData,
-          currentDescription: verificationData?.description
+          currentDescription: finalDescription
         }
       }));
 
-      console.log("Sauvegarde réussie. Description actuelle:", verificationData);
+      console.log("Sauvegarde réussie. Description actuelle:", finalDescription);
       
       toast({
         title: "Succès",
