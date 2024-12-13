@@ -50,8 +50,8 @@ export function useStepManagerActions() {
 
       console.log("Paramètres de recherche:", searchParams);
 
-      // Faire la requête à l'API Scrapetable avec le bon endpoint v1
-      const response = await fetch("https://api.scrapetable.com/v1/google/maps/search", {
+      // Faire la requête à l'API Scrapetable avec le bon endpoint
+      const response = await fetch("https://api.scrapetable.com/v1/website/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
