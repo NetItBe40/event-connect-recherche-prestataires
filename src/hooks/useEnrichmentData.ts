@@ -1,26 +1,8 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-
-interface EnrichmentData {
-  website?: string;
-  phone?: string;
-  type?: string;
-  openingHours?: {
-    [key: string]: string;
-  };
-  facebook?: string;
-  instagram?: string;
-  tiktok?: string;
-  snapchat?: string;
-  twitter?: string;
-  linkedin?: string;
-  github?: string;
-  youtube?: string;
-  pinterest?: string;
-  email_1?: string;
-  email_2?: string;
-}
+import { EnrichmentData } from "@/types/enrichment";
+import { fetchSocialMediaData } from "@/services/socialMediaService";
+import { savePlaceData } from "@/services/placeService";
 
 export function useEnrichmentData(placeId: string | undefined, initialData: EnrichmentData) {
   const [data, setData] = useState<EnrichmentData>(initialData);
@@ -46,43 +28,7 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
 
     setIsLoading(true);
     try {
-      // Récupérer la clé API de Scrapetable depuis la base de données
-      const { data: apiKeyData, error: apiKeyError } = await supabase
-        .from('apikeys')
-        .select('apikey')
-        .eq('provider', 'scrapetable')
-        .single();
-
-      if (apiKeyError || !apiKeyData?.apikey) {
-        throw new Error("Impossible de récupérer la clé API");
-      }
-
-      console.log("Appel de l'API email-socials avec le site web:", data.website);
-
-      const response = await fetch("https://api.scrapetable.com/website/email-socials", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "api-key": apiKeyData.apikey,
-        },
-        body: JSON.stringify({
-          websites: [data.website],
-          flatten: true
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Erreur API:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText
-        });
-        throw new Error("Erreur lors de la récupération des données");
-      }
-
-      const result = await response.json();
-      console.log("Résultats de l'API Email Socials:", result);
+      const result = await fetchSocialMediaData(data.website);
 
       if (result && result.length > 0) {
         const socialData = result[0];
@@ -135,29 +81,7 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
     }
 
     try {
-      const { error } = await supabase
-        .from("places")
-        .update({
-          website: data.website,
-          phone: data.phone,
-          type: data.type,
-          opening_hours: data.openingHours,
-          facebook: data.facebook,
-          instagram: data.instagram,
-          tiktok: data.tiktok,
-          snapchat: data.snapchat,
-          twitter: data.twitter,
-          linkedin: data.linkedin,
-          github: data.github,
-          youtube: data.youtube,
-          pinterest: data.pinterest,
-          email_1: data.email_1,
-          email_2: data.email_2,
-        })
-        .eq("id", placeId);
-
-      if (error) throw error;
-
+      await savePlaceData(placeId, data);
       toast({
         title: "Succès",
         description: "Les données ont été sauvegardées avec succès",
