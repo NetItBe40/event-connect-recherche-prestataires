@@ -49,6 +49,9 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         return;
       }
 
+      // Ensure reviews is just the number before saving
+      const reviews = place.reviews ? place.reviews.toString().replace(/\s+avis$/, '') : null;
+
       const { error } = await supabase
         .from('places')
         .insert([
@@ -56,7 +59,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
             title: place.title,
             address: place.address,
             rating: place.rating,
-            reviews: place.reviews,
+            reviews: reviews,
             type: place.type,
             phone: place.phone,
             website: place.website,
