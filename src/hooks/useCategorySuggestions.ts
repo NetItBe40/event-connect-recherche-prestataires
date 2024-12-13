@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { generateDescription } from "@/api/generate-description";
 
 interface Category {
   id: string;
@@ -20,59 +21,47 @@ export function useCategorySuggestions(placeId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const analyzePlaceData = (description: string, type: string, categories: Category[]): string[] => {
-    const suggestedIds: string[] = [];
-    const text = `${description} ${type}`.toLowerCase();
-    
-    // Mots-clés spécifiques par catégorie
-    const categoryKeywords: { [key: string]: string[] } = {
-      "Lieux": ["salle", "château", "domaine", "espace", "lieu", "villa", "manoir"],
-      "Traiteurs": ["traiteur", "cuisine", "gastronomie", "chef", "repas", "buffet"],
-      "Animation": ["dj", "musique", "animation", "spectacle", "artiste", "band", "groupe"],
-      "Décoration": ["décor", "fleur", "design", "ambiance", "scénographie"],
-      "Photo & Vidéo": ["photo", "vidéo", "photographe", "cameraman", "film", "reportage"],
-      "Services": ["organisation", "planification", "coordination", "wedding planner"]
-    };
-    
-    categories.forEach(category => {
-      const relevantKeywords = categoryKeywords[category.name] || [];
-      let categoryScore = 0;
-      
-      // Vérifie les mots-clés de la catégorie
-      relevantKeywords.forEach(keyword => {
-        if (text.includes(keyword)) {
-          categoryScore += 2;
-        }
-      });
-      
-      // Si la catégorie est pertinente, analyse les sous-catégories
-      if (categoryScore > 0) {
+  const analyzePlaceWithAI = async (description: string, type: string, categories: Category[]) => {
+    try {
+      const prompt = `
+Analyse le profil du prestataire suivant en fonction de la liste des catégories disponibles. Classe ce prestataire uniquement dans les catégories dont les services ou activités sont clairement et explicitement mentionnés dans la description fournie. Ne fais aucune supposition ou extrapolation.
+
+Description du prestataire :
+${description}
+
+Type d'établissement : ${type}
+
+Catégories disponibles :
+${categories.map(cat => `${cat.name}:
+${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
+
+1. Classe uniquement le prestataire dans les catégories **explicitement** liées à ses services.
+2. Si aucune catégorie ne correspond parfaitement, indique qu'aucune catégorie adéquate n'est disponible.
+
+### Résultat attendu :
+- Liste des sous-catégories pertinentes : [liste des noms exacts des sous-catégories]
+`;
+
+      console.log("Envoi du prompt à GPT-4:", prompt);
+
+      const response = await generateDescription(prompt);
+      console.log("Réponse de GPT-4:", response);
+
+      // Extraction des sous-catégories suggérées
+      const suggestedIds: string[] = [];
+      categories.forEach(category => {
         category.subcategories.forEach(subcategory => {
-          const subcategoryWords = subcategory.name.toLowerCase().split(' ');
-          let subcategoryScore = 0;
-          
-          // Analyse plus précise des sous-catégories
-          subcategoryWords.forEach(word => {
-            if (text.includes(word) && word.length > 3) { // Ignore les mots trop courts
-              subcategoryScore += 3;
-            }
-          });
-          
-          // Vérifie les expressions exactes
-          if (text.includes(subcategory.name.toLowerCase())) {
-            subcategoryScore += 5;
-          }
-          
-          // Ajoute seulement si le score est suffisamment élevé
-          if (subcategoryScore >= 5) {
+          if (response?.toLowerCase().includes(subcategory.name.toLowerCase())) {
             suggestedIds.push(subcategory.id);
           }
         });
-      }
-    });
-    
-    // Limite le nombre de suggestions à 3 maximum par catégorie
-    return suggestedIds.slice(0, 3);
+      });
+
+      return suggestedIds;
+    } catch (error) {
+      console.error("Erreur lors de l'analyse AI:", error);
+      return [];
+    }
   };
 
   const fetchCategories = async () => {
@@ -107,7 +96,7 @@ export function useCategorySuggestions(placeId: string) {
 
       if (placeError) throw placeError;
 
-      const suggestedCategories = analyzePlaceData(
+      const suggestedCategories = await analyzePlaceWithAI(
         placeData.description || "",
         placeData.type || "",
         categoriesWithSubs
