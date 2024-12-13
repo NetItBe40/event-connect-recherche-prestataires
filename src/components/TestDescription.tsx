@@ -37,7 +37,7 @@ export function TestDescription() {
         .from('places')
         .update({ description2: 'test' })
         .eq('id', 'feef6749-89ad-484c-81b7-42783bffaea0')
-        .select('description2');
+        .select();
 
       if (error) {
         console.error("Erreur lors du test:", error);
@@ -103,6 +103,7 @@ export function TestDescription() {
       <Button 
         onClick={handleTest}
         disabled={isLoading}
+        variant="default"
       >
         {isLoading ? "Test en cours..." : "Tester l'écriture de 'test' dans description2"}
       </Button>
