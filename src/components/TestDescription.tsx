@@ -11,9 +11,13 @@ export function TestDescription() {
     try {
       console.log("Début du test d'écriture...");
       
+      // Créer un tableau avec la valeur test
+      const descriptionArray = ["test"];
+      console.log("Description à sauvegarder:", descriptionArray);
+      
       const { data, error } = await supabase
         .from('places')
-        .update({ description: 'test' })
+        .update({ description: JSON.stringify(descriptionArray) })
         .eq('id', 'feef6749-89ad-484c-81b7-42783bffaea0')
         .select('description');
 
@@ -50,7 +54,19 @@ export function TestDescription() {
         return;
       }
 
-      setCurrentValue(verificationData.description);
+      // Afficher la valeur brute pour le débogage
+      console.log("Valeur brute de la description:", verificationData.description);
+      
+      try {
+        // Tenter de parser la description JSON
+        const parsedDescription = verificationData.description ? JSON.parse(verificationData.description) : null;
+        console.log("Description parsée:", parsedDescription);
+        setCurrentValue(Array.isArray(parsedDescription) ? parsedDescription.join(", ") : parsedDescription);
+      } catch (parseError) {
+        console.error("Erreur lors du parsing de la description:", parseError);
+        setCurrentValue(verificationData.description);
+      }
+
       toast({
         title: "Vérification",
         description: `Valeur actuelle: ${verificationData.description || 'aucune valeur'}`
