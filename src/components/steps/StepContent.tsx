@@ -28,6 +28,9 @@ export function StepContent({
     console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
   }
 
+  // Détermine l'ID à utiliser - priorise id pour les places existantes, sinon utilise place_id
+  const placeIdentifier = selectedPlace?.id || selectedPlace?.placeId;
+
   switch (currentStep) {
     case 0:
       return (
@@ -54,7 +57,7 @@ export function StepContent({
     case 1:
       return (
         <ChatGPTStep 
-          placeId={selectedPlace?.id}
+          placeId={placeIdentifier}
           title={selectedPlace?.title || ""}
           address={selectedPlace?.address || ""}
           type={selectedPlace?.type}
@@ -66,7 +69,7 @@ export function StepContent({
     case 2:
       return (
         <BingImageStep 
-          placeId={selectedPlace?.id}
+          placeId={placeIdentifier}
           title={selectedPlace?.title || ""}
           address={selectedPlace?.address || ""}
         />
