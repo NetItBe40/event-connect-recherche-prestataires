@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { useState } from "react";
@@ -9,14 +9,14 @@ export function TestDescription() {
   
   const handleTest = async () => {
     try {
-      console.log("Début du test d'écriture...");
+      console.log("Début du test d'écriture dans description2...");
       
-      // Sauvegarder directement la valeur texte
+      // Sauvegarder directement la valeur texte dans description2
       const { data, error } = await supabase
         .from('places')
-        .update({ description: 'test' })
+        .update({ description2: 'test' })
         .eq('id', 'feef6749-89ad-484c-81b7-42783bffaea0')
-        .select('description');
+        .select('description2');
 
       if (error) {
         console.error("Erreur lors du test:", error);
@@ -31,13 +31,13 @@ export function TestDescription() {
       console.log("Résultat du test:", data);
       toast({
         title: "Succès",
-        description: "La valeur 'test' a été écrite avec succès"
+        description: "La valeur 'test' a été écrite avec succès dans description2"
       });
 
       // Vérification de la valeur
       const { data: verificationData, error: verificationError } = await supabase
         .from('places')
-        .select('description')
+        .select('description2')
         .eq('id', 'feef6749-89ad-484c-81b7-42783bffaea0')
         .single();
 
@@ -51,9 +51,9 @@ export function TestDescription() {
         return;
       }
 
-      // Afficher directement la valeur de la description
-      console.log("Valeur de la description:", verificationData.description);
-      setCurrentValue(verificationData.description);
+      // Afficher directement la valeur de description2
+      console.log("Valeur de description2:", verificationData.description2);
+      setCurrentValue(verificationData.description2);
 
     } catch (error: any) {
       console.error("Erreur inattendue:", error);
@@ -68,11 +68,11 @@ export function TestDescription() {
   return (
     <div className="p-4 space-y-4">
       <Button onClick={handleTest}>
-        Tester l'écriture de 'test'
+        Tester l'écriture de 'test' dans description2
       </Button>
       {currentValue !== null && (
         <div className="text-sm">
-          Valeur actuelle: {currentValue || 'aucune valeur'}
+          Valeur actuelle dans description2: {currentValue || 'aucune valeur'}
         </div>
       )}
     </div>

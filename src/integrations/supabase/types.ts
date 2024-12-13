@@ -36,6 +36,7 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          description2: string | null
           email_1: string | null
           email_2: string | null
           facebook: string | null
@@ -71,6 +72,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          description2?: string | null
           email_1?: string | null
           email_2?: string | null
           facebook?: string | null
@@ -106,6 +108,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          description2?: string | null
           email_1?: string | null
           email_2?: string | null
           facebook?: string | null
