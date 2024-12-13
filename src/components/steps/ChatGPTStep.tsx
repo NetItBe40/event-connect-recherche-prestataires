@@ -33,7 +33,6 @@ export function ChatGPTStep({
     setDescription,
     error,
     handleSaveDescription,
-    DebugDialog
   } = useDescription(placeId, initialDescription);
 
   console.log("ChatGPTStep - État initial:", {
@@ -75,7 +74,6 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       setDescription(generatedDescription);
 
       if (placeId) {
-        // Formatage de la description en tableau avec un seul élément
         const formattedDescription = [generatedDescription.trim()];
         
         console.log("Sauvegarde de la description:", {
@@ -96,7 +94,6 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           throw updateError;
         }
 
-        // Vérification de la mise à jour
         const { data: verificationData, error: verificationError } = await supabase
           .from('places')
           .select('description')
@@ -152,7 +149,6 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
           onSave={handleSaveDescription}
           error={error}
           isLoading={isLoading}
-          DebugDialog={DebugDialog}
         />
       </div>
     </Card>
