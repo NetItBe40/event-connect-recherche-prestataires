@@ -1,6 +1,5 @@
 import { SearchForm } from "../SearchForm";
 import { ResultsList } from "../ResultsList";
-import { EnrichmentStep } from "./EnrichmentStep";
 import { BingImageStep } from "./BingImageStep";
 import { ChatGPTStep } from "./ChatGPTStep";
 import { ExistingPlacesList } from "../ExistingPlacesList";
@@ -27,11 +26,6 @@ export function StepContent({
 
   if (selectedPlace) {
     console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
-    
-    if (currentStep === 2) {
-      console.log("StepContent - Préparation des données pour EnrichmentStep");
-      console.log("StepContent - Website depuis selectedPlace:", selectedPlace.website);
-    }
   }
 
   switch (currentStep) {
@@ -70,29 +64,6 @@ export function StepContent({
         />
       );
     case 2:
-      return (
-        <EnrichmentStep
-          placeId={selectedPlace?.id}
-          initialData={{
-            website: selectedPlace?.website || "",
-            phone: selectedPlace?.phone || "",
-            type: selectedPlace?.type || "",
-            openingHours: selectedPlace?.opening_hours || {},
-            facebook: selectedPlace?.facebook || "",
-            instagram: selectedPlace?.instagram || "",
-            tiktok: selectedPlace?.tiktok || "",
-            snapchat: selectedPlace?.snapchat || "",
-            twitter: selectedPlace?.twitter || "",
-            linkedin: selectedPlace?.linkedin || "",
-            github: selectedPlace?.github || "",
-            youtube: selectedPlace?.youtube || "",
-            pinterest: selectedPlace?.pinterest || "",
-            email_1: selectedPlace?.email_1 || "",
-            email_2: selectedPlace?.email_2 || "",
-          }}
-        />
-      );
-    case 3:
       return (
         <BingImageStep 
           placeId={selectedPlace?.id}

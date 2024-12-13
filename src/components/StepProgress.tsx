@@ -10,7 +10,6 @@ export function StepProgress({ currentStep }: StepProgressProps) {
   const steps = [
     "Recherche Google Maps",
     "Description ChatGPT",
-    "Enrichissement données",
     "Image Bing"
   ];
 
@@ -18,7 +17,7 @@ export function StepProgress({ currentStep }: StepProgressProps) {
     <div className="w-full mb-8">
       <div className="flex justify-between">
         {steps.map((step, index) => (
-          <div key={index} className="flex flex-col items-center w-1/4">
+          <div key={index} className="flex flex-col items-center w-1/3">
             <div className={`
               w-10 h-10 rounded-full flex items-center justify-center mb-2
               ${index < currentStep ? 'bg-green-500 text-white' : 
