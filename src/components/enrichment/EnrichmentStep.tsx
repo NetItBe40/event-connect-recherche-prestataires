@@ -4,6 +4,7 @@ import { EnrichmentActions } from "./EnrichmentActions";
 import { useEnrichmentData } from "@/hooks/useEnrichmentData";
 import { EnrichmentDebugDialog } from "./EnrichmentDebugDialog";
 import { EnrichmentForms } from "./EnrichmentForms";
+import { toast } from "@/components/ui/use-toast";
 
 interface EnrichmentStepProps {
   placeId?: string;
@@ -36,6 +37,16 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
         website: data.website,
       };
       
+      if (!data.website) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "L'URL du site web est requise"
+        });
+        return false;
+      }
+
+      console.log("Démarrage de la recherche des réseaux sociaux pour:", data.website);
       const response = await handleFetchSocials();
       
       setDebugInfo({
@@ -44,18 +55,36 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
       });
       
       setDebugOpen(true);
+      console.log("Réponse de l'API:", response);
       
       if (response && typeof response === 'object') {
         setShowFullForm(true);
+        toast({
+          title: "Succès",
+          description: "Les réseaux sociaux ont été récupérés"
+        });
         return true;
       }
+
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Aucun réseau social trouvé"
+      });
       return false;
     } catch (error) {
+      console.error("Erreur lors de la recherche:", error);
       setDebugInfo({
         website: data.website,
         error: error
       });
       setDebugOpen(true);
+      
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de récupérer les réseaux sociaux"
+      });
       return false;
     }
   };
