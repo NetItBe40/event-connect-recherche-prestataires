@@ -40,8 +40,6 @@ export function StepManager() {
         </div>
 
         <div className="space-y-4">
-          <PlaceSummary selectedPlace={selectedPlace} />
-
           <div className="flex gap-4">
             {currentStep > 0 && (
               <Button
@@ -60,6 +58,8 @@ export function StepManager() {
               Étape suivante
             </Button>
           </div>
+          
+          <PlaceSummary selectedPlace={selectedPlace} />
         </div>
       </div>
     </div>
