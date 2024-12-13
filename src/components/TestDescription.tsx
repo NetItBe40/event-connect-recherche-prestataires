@@ -58,26 +58,35 @@ export function TestDescription() {
       console.log("Valeur brute de la description:", verificationData.description);
       
       try {
-        // Tenter de parser la description JSON
-        const parsedDescription = verificationData.description ? JSON.parse(verificationData.description) : null;
-        console.log("Description parsée:", parsedDescription);
-        
-        // Ne garder que les valeurs non nulles et non "t"
-        if (Array.isArray(parsedDescription)) {
-          const cleanedDescription = parsedDescription.filter(item => item !== null && item !== "t");
-          setCurrentValue(cleanedDescription.join(", "));
+        // Si la valeur n'est pas au format JSON, l'afficher telle quelle
+        if (typeof verificationData.description === 'string') {
+          try {
+            const parsedDescription = JSON.parse(verificationData.description);
+            console.log("Description parsée:", parsedDescription);
+            
+            if (Array.isArray(parsedDescription)) {
+              const cleanedDescription = parsedDescription.filter(item => 
+                item !== null && 
+                item !== "t" && 
+                typeof item === 'string' && 
+                item.trim() !== ""
+              );
+              setCurrentValue(cleanedDescription.join(", "));
+            } else {
+              setCurrentValue(String(parsedDescription));
+            }
+          } catch (parseError) {
+            // Si le parsing échoue, afficher la valeur brute
+            console.log("La valeur n'est pas au format JSON, affichage brut");
+            setCurrentValue(verificationData.description);
+          }
         } else {
-          setCurrentValue(parsedDescription);
+          setCurrentValue(String(verificationData.description));
         }
-      } catch (parseError) {
-        console.error("Erreur lors du parsing de la description:", parseError);
-        setCurrentValue(verificationData.description);
+      } catch (displayError) {
+        console.error("Erreur lors de l'affichage:", displayError);
+        setCurrentValue("Erreur lors de l'affichage de la valeur");
       }
-
-      toast({
-        title: "Vérification",
-        description: `Valeur actuelle: ${verificationData.description || 'aucune valeur'}`
-      });
 
     } catch (error: any) {
       console.error("Erreur inattendue:", error);
