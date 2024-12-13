@@ -45,8 +45,12 @@ export function StepContent({
     case 0:
       return (
         <div className="space-y-4">
-          <SearchForm onSubmit={onSearch} isLoading={isLoading} />
-          <ResultsList results={results} onSelect={onSelect} />
+          <SearchForm onSearch={onSearch} isLoading={isLoading} />
+          <ResultsList 
+            results={results} 
+            onSelect={onSelect}
+            isLoading={isLoading}
+          />
         </div>
       );
     case 1:
@@ -57,7 +61,7 @@ export function StepContent({
             website: selectedPlace?.website || "",
             phone: selectedPlace?.phone || "",
             type: selectedPlace?.type || "",
-            opening_hours: selectedPlace?.opening_hours || {},
+            openingHours: selectedPlace?.opening_hours || {},
             facebook: "",
             instagram: "",
             tiktok: "",
@@ -73,9 +77,21 @@ export function StepContent({
         />
       );
     case 2:
-      return <BingImageStep placeId={selectedPlace?.id} />;
+      return (
+        <BingImageStep 
+          placeId={selectedPlace?.id}
+          title={selectedPlace?.title || ""}
+          address={selectedPlace?.address || ""}
+        />
+      );
     case 3:
-      return <ChatGPTStep placeId={selectedPlace?.id} />;
+      return (
+        <ChatGPTStep 
+          placeId={selectedPlace?.id}
+          title={selectedPlace?.title || ""}
+          address={selectedPlace?.address || ""}
+        />
+      );
     default:
       return null;
   }
