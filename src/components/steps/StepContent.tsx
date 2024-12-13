@@ -3,6 +3,8 @@ import { ResultsList } from "../ResultsList";
 import { EnrichmentStep } from "./EnrichmentStep";
 import { BingImageStep } from "./BingImageStep";
 import { ChatGPTStep } from "./ChatGPTStep";
+import { ExistingPlacesList } from "../ExistingPlacesList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StepContentProps {
   currentStep: number;
@@ -29,15 +31,6 @@ export function StepContent({
     if (currentStep === 1) {
       console.log("StepContent - Préparation des données pour EnrichmentStep");
       console.log("StepContent - Website depuis selectedPlace:", selectedPlace.website);
-      
-      // Log des données attendues pour les réseaux sociaux
-      console.log("StepContent - Données attendues des réseaux sociaux:", {
-        facebook: "https://www.facebook.com/daniellenatoni",
-        instagram: "https://www.instagram.com/daniellenatoni",
-        youtube: "https://www.youtube.com/channel/UCCbyYD6W2U44K-OgpayiTng",
-        email_1: "bonjour@danieletannesophie.com",
-        email_2: "danielle@healthy.hair"
-      });
     }
   }
 
@@ -45,12 +38,23 @@ export function StepContent({
     case 0:
       return (
         <div className="space-y-4">
-          <SearchForm onSearch={onSearch} isLoading={isLoading} />
-          <ResultsList 
-            results={results} 
-            onSelect={onSelect}
-            isLoading={isLoading}
-          />
+          <Tabs defaultValue="search" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="search">Recherche Google Maps</TabsTrigger>
+              <TabsTrigger value="existing">Prestataires existants</TabsTrigger>
+            </TabsList>
+            <TabsContent value="search" className="space-y-4">
+              <SearchForm onSearch={onSearch} isLoading={isLoading} />
+              <ResultsList 
+                results={results} 
+                onSelect={onSelect}
+                isLoading={isLoading}
+              />
+            </TabsContent>
+            <TabsContent value="existing">
+              <ExistingPlacesList onSelect={onSelect} />
+            </TabsContent>
+          </Tabs>
         </div>
       );
     case 1:
