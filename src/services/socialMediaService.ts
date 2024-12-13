@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 export async function fetchSocialMediaData(website: string) {
   console.log("🔍 Fetching social media data for website:", website);
 
+  // Ensure the website includes the protocol
+  const normalizedWebsite = website.startsWith('http') ? website : `https://${website}`;
+  console.log("🌐 Normalized website URL:", normalizedWebsite);
+
   const { data: apiKeyData, error: apiKeyError } = await supabase
     .from('apikeys')
     .select('apikey')
@@ -15,7 +19,7 @@ export async function fetchSocialMediaData(website: string) {
   }
 
   console.log("✅ API key retrieved successfully");
-  console.log("📡 Calling email-socials API with website:", website);
+  console.log("📡 Calling email-socials API with website:", normalizedWebsite);
 
   const response = await fetch("https://api.scrapetable.com/website/email-socials", {
     method: "POST",
@@ -24,7 +28,7 @@ export async function fetchSocialMediaData(website: string) {
       "api-key": apiKeyData.apikey,
     },
     body: JSON.stringify({
-      websites: [website],
+      websites: [normalizedWebsite],
       flatten: true
     })
   });

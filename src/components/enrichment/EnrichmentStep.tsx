@@ -5,6 +5,7 @@ import { SocialMediaForm } from "../enrichment/SocialMediaForm";
 import { EmailForm } from "../enrichment/EmailForm";
 import { EnrichmentActions } from "../enrichment/EnrichmentActions";
 import { useEnrichmentData } from "@/hooks/useEnrichmentData";
+import { EnrichmentDebugDialog } from "./EnrichmentDebugDialog";
 
 interface EnrichmentStepProps {
   placeId?: string;
@@ -20,6 +21,8 @@ interface EnrichmentStepProps {
 
 export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
   const [showFullForm, setShowFullForm] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>({});
   
   const {
     data,
@@ -30,9 +33,36 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
   } = useEnrichmentData(placeId, initialData);
 
   const onFetchSocials = async () => {
-    const success = await handleFetchSocials();
-    if (success) {
-      setShowFullForm(true);
+    try {
+      // Préparer les données de debug
+      const debugData = {
+        website: data.website,
+      };
+      
+      const response = await handleFetchSocials();
+      
+      // Mettre à jour les données de debug avec la réponse
+      setDebugInfo({
+        ...debugData,
+        apiResponse: response
+      });
+      
+      // Ouvrir la modale de debug
+      setDebugOpen(true);
+      
+      if (response && response.length > 0) {
+        setShowFullForm(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      // En cas d'erreur, afficher aussi dans la modale
+      setDebugInfo({
+        website: data.website,
+        error: error
+      });
+      setDebugOpen(true);
+      return false;
     }
   };
 
@@ -84,6 +114,12 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
           </>
         )}
       </div>
+
+      <EnrichmentDebugDialog
+        open={debugOpen}
+        onOpenChange={setDebugOpen}
+        debugInfo={debugInfo}
+      />
     </Card>
   );
 }
