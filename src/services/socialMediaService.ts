@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchSocialMediaData(website: string) {
+  console.log("🔍 Fetching social media data for website:", website);
+
   const { data: apiKeyData, error: apiKeyError } = await supabase
     .from('apikeys')
     .select('apikey')
@@ -8,10 +10,12 @@ export async function fetchSocialMediaData(website: string) {
     .single();
 
   if (apiKeyError || !apiKeyData?.apikey) {
+    console.error("❌ Error fetching API key:", apiKeyError);
     throw new Error("Impossible de récupérer la clé API");
   }
 
-  console.log("Appel de l'API email-socials avec le site web:", website);
+  console.log("✅ API key retrieved successfully");
+  console.log("📡 Calling email-socials API with website:", website);
 
   const response = await fetch("https://api.scrapetable.com/website/email-socials", {
     method: "POST",
@@ -27,7 +31,7 @@ export async function fetchSocialMediaData(website: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("Erreur API:", {
+    console.error("❌ API Error:", {
       status: response.status,
       statusText: response.statusText,
       body: errorText
@@ -36,6 +40,6 @@ export async function fetchSocialMediaData(website: string) {
   }
 
   const result = await response.json();
-  console.log("Résultats de l'API Email Socials:", result);
+  console.log("✨ Email-socials API results:", result);
   return result;
 }
