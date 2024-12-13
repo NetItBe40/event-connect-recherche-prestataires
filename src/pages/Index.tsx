@@ -3,9 +3,9 @@ import { TestDescription } from "@/components/TestDescription";
 
 export default function Index() {
   return (
-    <>
+    <div className="space-y-8">
       <TestDescription />
       <StepManager />
-    </>
+    </div>
   );
 }
