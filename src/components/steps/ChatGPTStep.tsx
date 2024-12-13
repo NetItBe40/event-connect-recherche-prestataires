@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { generateDescription } from "@/api/generate-description";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useDescription } from "@/hooks/useDescription";
 import { DescriptionForm } from "../description/DescriptionForm";

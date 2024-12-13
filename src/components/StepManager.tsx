@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { StepContent } from "./steps/StepContent";
 import { PlaceSummary } from "./steps/PlaceSummary";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useStepManagerState } from "@/hooks/useStepManagerState";
 import { useStepManagerActions } from "@/hooks/useStepManagerActions";
 

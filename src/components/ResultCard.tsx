@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { useToast } from "./ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { PlaceHeader } from "./place/PlaceHeader";
 import { PlaceDetails } from "./place/PlaceDetails";
 
