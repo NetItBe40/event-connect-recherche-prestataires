@@ -1,10 +1,8 @@
-import { ChatGPTStep } from "./ChatGPTStep";
+import { SearchForm } from "../SearchForm";
+import { ResultsList } from "../ResultsList";
 import { EnrichmentStep } from "./EnrichmentStep";
 import { BingImageStep } from "./BingImageStep";
-import { ResultsList } from "../ResultsList";
-import { SearchForm } from "../SearchForm";
-import { ExistingPlacesList } from "../ExistingPlacesList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { ChatGPTStep } from "./ChatGPTStep";
 
 interface StepContentProps {
   currentStep: number;
@@ -15,103 +13,69 @@ interface StepContentProps {
   onSelect: (place: any) => void;
 }
 
-export function StepContent({ 
-  currentStep, 
-  selectedPlace, 
-  results, 
-  isLoading, 
-  onSearch, 
-  onSelect 
+export function StepContent({
+  currentStep,
+  selectedPlace,
+  results,
+  isLoading,
+  onSearch,
+  onSelect,
 }: StepContentProps) {
   console.log("StepContent - Étape actuelle:", currentStep);
-  console.log("StepContent - Données complètes du lieu sélectionné:", selectedPlace);
-  console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
-  
-  if (!selectedPlace && currentStep > 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Veuillez d'abord sélectionner un lieu</p>
-      </div>
-    );
+
+  if (selectedPlace) {
+    console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
+    
+    if (currentStep === 1) {
+      console.log("StepContent - Préparation des données pour EnrichmentStep");
+      console.log("StepContent - Website depuis selectedPlace:", selectedPlace.website);
+      
+      // Log des données attendues pour les réseaux sociaux
+      console.log("StepContent - Données attendues des réseaux sociaux:", {
+        facebook: "https://www.facebook.com/daniellenatoni",
+        instagram: "https://www.instagram.com/daniellenatoni",
+        youtube: "https://www.youtube.com/channel/UCCbyYD6W2U44K-OgpayiTng",
+        email_1: "bonjour@danieletannesophie.com",
+        email_2: "danielle@healthy.hair"
+      });
+    }
   }
 
   switch (currentStep) {
     case 0:
       return (
-        <Tabs defaultValue="new" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="new">Nouveau prestataire</TabsTrigger>
-            <TabsTrigger value="existing">Prestataire existant</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="new" className="space-y-8">
-            <div className="max-w-2xl mx-auto">
-              <SearchForm onSearch={onSearch} isLoading={isLoading} />
-            </div>
-            <ResultsList 
-              results={results} 
-              isLoading={isLoading} 
-              onSelect={onSelect}
-            />
-          </TabsContent>
-          
-          <TabsContent value="existing">
-            <ExistingPlacesList onSelect={onSelect} />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-4">
+          <SearchForm onSubmit={onSearch} isLoading={isLoading} />
+          <ResultsList results={results} onSelect={onSelect} />
+        </div>
       );
     case 1:
       return (
-        <ChatGPTStep 
+        <EnrichmentStep
           placeId={selectedPlace?.id}
-          title={selectedPlace?.title}
-          address={selectedPlace?.address}
-          type={selectedPlace?.type}
-          rating={selectedPlace?.rating}
-          phone={selectedPlace?.phone}
-          description={selectedPlace?.description}
+          initialData={{
+            website: selectedPlace?.website || "",
+            phone: selectedPlace?.phone || "",
+            type: selectedPlace?.type || "",
+            opening_hours: selectedPlace?.opening_hours || {},
+            facebook: "",
+            instagram: "",
+            tiktok: "",
+            snapchat: "",
+            twitter: "",
+            linkedin: "",
+            github: "",
+            youtube: "",
+            pinterest: "",
+            email_1: "",
+            email_2: "",
+          }}
         />
       );
     case 2:
-      console.log("StepContent - Préparation des données pour EnrichmentStep");
-      console.log("StepContent - Website depuis selectedPlace:", selectedPlace?.website);
-      
-      const initialData = {
-        website: selectedPlace?.website || "",
-        phone: selectedPlace?.phone || "",
-        type: selectedPlace?.type || "",
-        opening_hours: selectedPlace?.opening_hours || {},
-        facebook: selectedPlace?.facebook || "",
-        instagram: selectedPlace?.instagram || "",
-        tiktok: selectedPlace?.tiktok || "",
-        snapchat: selectedPlace?.snapchat || "",
-        twitter: selectedPlace?.twitter || "",
-        linkedin: selectedPlace?.linkedin || "",
-        github: selectedPlace?.github || "",
-        youtube: selectedPlace?.youtube || "",
-        pinterest: selectedPlace?.pinterest || "",
-        email_1: selectedPlace?.email_1 || "",
-        email_2: selectedPlace?.email_2 || "",
-      };
-
-      console.log("EnrichmentStep - Données initiales complètes:", initialData);
-      console.log("EnrichmentStep - Website value:", selectedPlace?.website);
-      console.log("EnrichmentStep - Clés disponibles dans selectedPlace:", Object.keys(selectedPlace || {}));
-
-      return (
-        <EnrichmentStep 
-          placeId={selectedPlace?.id}
-          initialData={initialData}
-        />
-      );
+      return <BingImageStep placeId={selectedPlace?.id} />;
     case 3:
-      return (
-        <BingImageStep 
-          placeId={selectedPlace?.id}
-          title={selectedPlace?.title}
-          address={selectedPlace?.address}
-        />
-      );
+      return <ChatGPTStep placeId={selectedPlace?.id} />;
     default:
       return null;
   }
