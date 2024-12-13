@@ -7,15 +7,19 @@ interface PlaceHeaderProps {
   verified?: boolean;
   id?: string;
   onSelect: () => void;
+  children?: React.ReactNode;
 }
 
-export function PlaceHeader({ title, verified, id, onSelect }: PlaceHeaderProps) {
+export function PlaceHeader({ title, verified, id, onSelect, children }: PlaceHeaderProps) {
   return (
     <CardHeader>
       <div className="flex justify-between items-start">
-        <CardTitle className="text-xl font-bold text-google-blue">
-          {title}
-        </CardTitle>
+        <div className="space-y-2">
+          <CardTitle className="text-xl font-bold text-google-blue">
+            {title}
+          </CardTitle>
+          {children}
+        </div>
         <Button 
           onClick={onSelect}
           className="bg-google-blue hover:bg-google-blue/90"

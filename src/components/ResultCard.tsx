@@ -3,6 +3,10 @@ import { useToast } from "./ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PlaceHeader } from "./place/PlaceHeader";
 import { PlaceDetails } from "./place/PlaceDetails";
+import { useEffect, useState } from "react";
+import { useSupabaseSearch } from "@/hooks/useSupabaseSearch";
+import { Badge } from "./ui/badge";
+import { AlertCircle } from "lucide-react";
 
 interface Place {
   id?: string;
@@ -36,6 +40,16 @@ interface ResultCardProps {
 
 export function ResultCard({ place, onSelect }: ResultCardProps) {
   const { toast } = useToast();
+  const { checkExistingPlace } = useSupabaseSearch();
+  const [existingPlace, setExistingPlace] = useState<Place | null>(null);
+
+  useEffect(() => {
+    const checkPlace = async () => {
+      const existing = await checkExistingPlace(place.title);
+      setExistingPlace(existing);
+    };
+    checkPlace();
+  }, [place.title]);
 
   const handleSelect = async () => {
     try {
@@ -106,7 +120,14 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         verified={place.verified}
         id={place.id}
         onSelect={handleSelect}
-      />
+      >
+        {existingPlace && (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <AlertCircle className="h-4 w-4" />
+            Fiche existante
+          </Badge>
+        )}
+      </PlaceHeader>
       <PlaceDetails place={place} />
     </Card>
   );
