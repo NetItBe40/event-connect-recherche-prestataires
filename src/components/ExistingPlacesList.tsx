@@ -16,6 +16,7 @@ interface Place {
   rating?: string;
   description?: string;
   photobing1?: string;
+  website?: string;
 }
 
 interface ExistingPlacesListProps {
@@ -36,7 +37,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     try {
       let supabaseQuery = supabase
         .from('places')
-        .select('id, title, address, phone, type, rating, description, photobing1');
+        .select('id, title, address, phone, type, rating, description, photobing1, website');
 
       if (query) {
         supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
@@ -58,7 +59,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       const { data, error } = await supabaseQuery;
 
       if (error) throw error;
-      console.log("Résultats de la requête:", data); // Pour le débogage
+      console.log("Résultats de la requête:", data);
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
