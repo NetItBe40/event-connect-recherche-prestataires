@@ -6,8 +6,10 @@ import { useState } from "react";
 export function TestDescription() {
   const { toast } = useToast();
   const [currentValue, setCurrentValue] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleTest = async () => {
+    setIsLoading(true);
     try {
       // Première vérification - lire la valeur actuelle
       console.log("Vérification de la valeur initiale...");
@@ -19,6 +21,11 @@ export function TestDescription() {
 
       if (initialError) {
         console.error("Erreur lors de la vérification initiale:", initialError);
+        toast({
+          variant: "destructive",
+          title: "Erreur initiale",
+          description: `Impossible de lire la valeur actuelle: ${initialError.message}`
+        });
         return;
       }
 
@@ -37,7 +44,7 @@ export function TestDescription() {
         toast({
           variant: "destructive",
           title: "Erreur",
-          description: error.message
+          description: `Impossible d'écrire la valeur: ${error.message}`
         });
         return;
       }
@@ -86,13 +93,18 @@ export function TestDescription() {
         title: "Erreur inattendue",
         description: error.message
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="p-4 space-y-4">
-      <Button onClick={handleTest}>
-        Tester l'écriture de 'test' dans description2
+      <Button 
+        onClick={handleTest}
+        disabled={isLoading}
+      >
+        {isLoading ? "Test en cours..." : "Tester l'écriture de 'test' dans description2"}
       </Button>
       {currentValue !== null && (
         <div className="text-sm">
