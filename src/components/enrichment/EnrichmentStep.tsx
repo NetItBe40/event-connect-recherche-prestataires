@@ -50,7 +50,8 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
       // Ouvrir la modale de debug
       setDebugOpen(true);
       
-      if (response && response.length > 0) {
+      // Vérifier si nous avons des données valides
+      if (response && typeof response === 'object') {
         setShowFullForm(true);
         return true;
       }
