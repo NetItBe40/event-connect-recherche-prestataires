@@ -1,17 +1,20 @@
 import { Camera } from "lucide-react";
 
 interface PhotoObject {
-  src: string;
+  src?: string;
+  url?: string;
   max_size?: [number, number];
   min_size?: [number, number];
 }
 
 interface PlacePhotoProps {
-  photo: string | PhotoObject | PhotoObject[] | null; // Accept string, photo object, or array of photo objects
+  photo: string | PhotoObject | PhotoObject[] | null;
   title: string;
 }
 
 export function PlacePhoto({ photo, title }: PlacePhotoProps) {
+  console.log("PlacePhoto - Données reçues:", { photo, title });
+
   // Si pas de photo du tout
   if (!photo) {
     return (
@@ -26,11 +29,16 @@ export function PlacePhoto({ photo, title }: PlacePhotoProps) {
 
   if (typeof photo === 'string') {
     photoUrl = photo;
-  } else if (Array.isArray(photo) && photo.length > 0 && photo[0].src) {
-    photoUrl = photo[0].src;
-  } else if ((photo as PhotoObject).src) {
-    photoUrl = (photo as PhotoObject).src;
+  } else if (Array.isArray(photo) && photo.length > 0) {
+    // Si c'est un tableau, prendre le premier élément et chercher src ou url
+    photoUrl = photo[0].src || photo[0].url || null;
+  } else {
+    // Si c'est un objet unique, chercher src ou url
+    const photoObj = photo as PhotoObject;
+    photoUrl = photoObj.src || photoObj.url || null;
   }
+
+  console.log("PlacePhoto - URL extraite:", photoUrl);
 
   // Si on n'a pas réussi à extraire une URL valide
   if (!photoUrl) {
@@ -48,6 +56,7 @@ export function PlacePhoto({ photo, title }: PlacePhotoProps) {
         alt={title} 
         className="w-full h-full object-cover"
         onError={(e) => {
+          console.error("Erreur de chargement de l'image:", photoUrl);
           e.currentTarget.src = "/placeholder.svg";
         }}
       />
