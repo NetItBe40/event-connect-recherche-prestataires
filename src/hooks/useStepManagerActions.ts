@@ -72,15 +72,15 @@ export function useStepManagerActions() {
       const data = await response.json();
       console.log("Résultats de la recherche:", data);
 
-      // Formater les résultats en extrayant uniquement le nombre d'avis
+      // Formater les résultats en incluant le website
       const formattedResults = data.map((place: any) => ({
         title: place.name,
         address: place.full_address,
         rating: place.rating,
-        reviews: place.review_count, // Stocke uniquement le nombre d'avis
+        reviews: place.review_count,
         type: place.types?.[0],
         phone: place.phone_number,
-        website: place.website,
+        website: place.website || "", // Ajout du champ website
         latitude: place.latitude,
         longitude: place.longitude,
         timezone: place.timezone,
