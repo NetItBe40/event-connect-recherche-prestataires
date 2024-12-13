@@ -122,25 +122,25 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         id={place.id}
         onSelect={handleSelect}
       >
-        <div className="flex items-center gap-2">
-          {existingPlace && (
-            <Badge variant="destructive" className="flex items-center gap-1">
-              <AlertCircle className="h-4 w-4" />
-              Fiche existante
-            </Badge>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={() => setShowDetails(true)}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Voir les détails
-          </Button>
-        </div>
+        {existingPlace && (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <AlertCircle className="h-4 w-4" />
+            Fiche existante
+          </Badge>
+        )}
       </PlaceHeader>
       <PlaceDetails place={place} />
+      <div className="p-6 pt-0">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => setShowDetails(true)}
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          Voir les détails
+        </Button>
+      </div>
       <PlaceDetailsDialog 
         place={place}
         open={showDetails}
