@@ -61,7 +61,14 @@ export function TestDescription() {
         // Tenter de parser la description JSON
         const parsedDescription = verificationData.description ? JSON.parse(verificationData.description) : null;
         console.log("Description parsée:", parsedDescription);
-        setCurrentValue(Array.isArray(parsedDescription) ? parsedDescription.join(", ") : parsedDescription);
+        
+        // Ne garder que les valeurs non nulles et non "t"
+        if (Array.isArray(parsedDescription)) {
+          const cleanedDescription = parsedDescription.filter(item => item !== null && item !== "t");
+          setCurrentValue(cleanedDescription.join(", "));
+        } else {
+          setCurrentValue(parsedDescription);
+        }
       } catch (parseError) {
         console.error("Erreur lors du parsing de la description:", parseError);
         setCurrentValue(verificationData.description);
