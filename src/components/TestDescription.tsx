@@ -11,13 +11,10 @@ export function TestDescription() {
     try {
       console.log("Début du test d'écriture...");
       
-      // Créer un tableau avec la valeur test
-      const descriptionArray = ["test"];
-      console.log("Description à sauvegarder:", descriptionArray);
-      
+      // Sauvegarder directement la valeur texte
       const { data, error } = await supabase
         .from('places')
-        .update({ description: JSON.stringify(descriptionArray) })
+        .update({ description: 'test' })
         .eq('id', 'feef6749-89ad-484c-81b7-42783bffaea0')
         .select('description');
 
@@ -54,39 +51,9 @@ export function TestDescription() {
         return;
       }
 
-      // Afficher la valeur brute pour le débogage
-      console.log("Valeur brute de la description:", verificationData.description);
-      
-      try {
-        // Si la valeur n'est pas au format JSON, l'afficher telle quelle
-        if (typeof verificationData.description === 'string') {
-          try {
-            const parsedDescription = JSON.parse(verificationData.description);
-            console.log("Description parsée:", parsedDescription);
-            
-            if (Array.isArray(parsedDescription)) {
-              const cleanedDescription = parsedDescription.filter(item => 
-                item !== null && 
-                item !== "t" && 
-                typeof item === 'string' && 
-                item.trim() !== ""
-              );
-              setCurrentValue(cleanedDescription.join(", "));
-            } else {
-              setCurrentValue(String(parsedDescription));
-            }
-          } catch (parseError) {
-            // Si le parsing échoue, afficher la valeur brute
-            console.log("La valeur n'est pas au format JSON, affichage brut");
-            setCurrentValue(verificationData.description);
-          }
-        } else {
-          setCurrentValue(String(verificationData.description));
-        }
-      } catch (displayError) {
-        console.error("Erreur lors de l'affichage:", displayError);
-        setCurrentValue("Erreur lors de l'affichage de la valeur");
-      }
+      // Afficher directement la valeur de la description
+      console.log("Valeur de la description:", verificationData.description);
+      setCurrentValue(verificationData.description);
 
     } catch (error: any) {
       console.error("Erreur inattendue:", error);
