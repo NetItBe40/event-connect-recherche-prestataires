@@ -24,7 +24,7 @@ export function StepContent({
   onSelect 
 }: StepContentProps) {
   console.log("StepContent - Étape actuelle:", currentStep);
-  console.log("StepContent - Données du lieu sélectionné:", selectedPlace);
+  console.log("StepContent - Données complètes du lieu sélectionné:", selectedPlace);
   
   if (!selectedPlace && currentStep > 0) {
     return (
@@ -76,7 +76,7 @@ export function StepContent({
         website: selectedPlace?.website || "",
         phone: selectedPlace?.phone || "",
         type: selectedPlace?.type || "",
-        openingHours: selectedPlace?.opening_hours || {},
+        opening_hours: selectedPlace?.opening_hours || {},
         facebook: selectedPlace?.facebook || "",
         instagram: selectedPlace?.instagram || "",
         tiktok: selectedPlace?.tiktok || "",
@@ -90,7 +90,8 @@ export function StepContent({
         email_2: selectedPlace?.email_2 || "",
       };
 
-      console.log("EnrichmentStep - initialData:", initialData);
+      console.log("EnrichmentStep - Données initiales complètes:", initialData);
+      console.log("EnrichmentStep - Website value:", selectedPlace?.website);
 
       return (
         <EnrichmentStep 
