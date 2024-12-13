@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { BasicInfoForm } from "../enrichment/BasicInfoForm";
-import { SocialMediaForm } from "../enrichment/SocialMediaForm";
-import { EmailForm } from "../enrichment/EmailForm";
-import { EnrichmentActions } from "../enrichment/EnrichmentActions";
+import { EnrichmentActions } from "./EnrichmentActions";
 import { useEnrichmentData } from "@/hooks/useEnrichmentData";
 import { EnrichmentDebugDialog } from "./EnrichmentDebugDialog";
+import { EnrichmentForms } from "./EnrichmentForms";
 
 interface EnrichmentStepProps {
   placeId?: string;
@@ -34,30 +32,25 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
 
   const onFetchSocials = async () => {
     try {
-      // Préparer les données de debug
       const debugData = {
         website: data.website,
       };
       
       const response = await handleFetchSocials();
       
-      // Mettre à jour les données de debug avec la réponse
       setDebugInfo({
         ...debugData,
         apiResponse: response
       });
       
-      // Ouvrir la modale de debug
       setDebugOpen(true);
       
-      // Vérifier si nous avons des données valides
       if (response && typeof response === 'object') {
         setShowFullForm(true);
         return true;
       }
       return false;
     } catch (error) {
-      // En cas d'erreur, afficher aussi dans la modale
       setDebugInfo({
         website: data.website,
         error: error
@@ -72,48 +65,20 @@ export function EnrichmentStep({ placeId, initialData }: EnrichmentStepProps) {
       <h2 className="text-xl font-semibold">Enrichissement des données</h2>
 
       <div className="space-y-4">
-        <BasicInfoForm
+        <EnrichmentForms
           data={data}
           onChange={handleChange}
           isLoading={isLoading}
-          showOnlyWebsite={!showFullForm}
+          showFullForm={showFullForm}
         />
 
-        {!showFullForm && (
-          <EnrichmentActions
-            onFetchSocials={onFetchSocials}
-            onSave={handleSave}
-            isLoading={isLoading}
-            hasWebsite={!!data.website}
-            showSaveButton={false}
-          />
-        )}
-
-        {showFullForm && (
-          <>
-            <h3 className="text-lg font-semibold">Réseaux sociaux</h3>
-            <SocialMediaForm
-              data={data}
-              onChange={handleChange}
-              isLoading={isLoading}
-            />
-
-            <h3 className="text-lg font-semibold">Emails</h3>
-            <EmailForm
-              data={data}
-              onChange={handleChange}
-              isLoading={isLoading}
-            />
-
-            <EnrichmentActions
-              onFetchSocials={onFetchSocials}
-              onSave={handleSave}
-              isLoading={isLoading}
-              hasWebsite={!!data.website}
-              showSaveButton={true}
-            />
-          </>
-        )}
+        <EnrichmentActions
+          onFetchSocials={onFetchSocials}
+          onSave={handleSave}
+          isLoading={isLoading}
+          hasWebsite={!!data.website}
+          showSaveButton={showFullForm}
+        />
       </div>
 
       <EnrichmentDebugDialog
