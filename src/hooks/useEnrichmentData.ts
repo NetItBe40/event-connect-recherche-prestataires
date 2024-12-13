@@ -23,12 +23,7 @@ interface EnrichmentData {
 }
 
 export function useEnrichmentData(placeId: string | undefined, initialData: EnrichmentData) {
-  const [data, setData] = useState<EnrichmentData>({
-    website: initialData.website || "",
-    phone: initialData.phone || "",
-    type: initialData.type || "",
-  });
-  
+  const [data, setData] = useState<EnrichmentData>(initialData);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -51,6 +46,7 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
 
     setIsLoading(true);
     try {
+      // Récupérer la clé API de Scrapetable depuis la base de données
       const { data: apiKeyData, error: apiKeyError } = await supabase
         .from('apikeys')
         .select('apikey')
@@ -60,6 +56,8 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
       if (apiKeyError || !apiKeyData?.apikey) {
         throw new Error("Impossible de récupérer la clé API");
       }
+
+      console.log("Appel de l'API email-socials avec le site web:", data.website);
 
       const response = await fetch("https://api.scrapetable.com/website/email-socials", {
         method: "POST",
@@ -74,6 +72,12 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erreur API:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
         throw new Error("Erreur lors de la récupération des données");
       }
 
@@ -92,14 +96,20 @@ export function useEnrichmentData(placeId: string | undefined, initialData: Enri
           email_1: socialData.emails?.[0] || "",
           email_2: socialData.emails?.[1] || "",
         }));
+
+        toast({
+          title: "Succès",
+          description: "Les réseaux sociaux ont été récupérés avec succès",
+        });
+
+        return true;
       }
 
       toast({
-        title: "Succès",
-        description: "Les réseaux sociaux ont été récupérés avec succès",
+        title: "Information",
+        description: "Aucun réseau social trouvé pour ce site web",
       });
-
-      return true;
+      return false;
 
     } catch (error) {
       console.error("Erreur lors de la récupération des réseaux sociaux:", error);
