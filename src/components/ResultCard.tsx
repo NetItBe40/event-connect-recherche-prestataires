@@ -130,14 +130,14 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         )}
       </PlaceHeader>
       <PlaceDetails place={place} />
-      <div className="p-6 border-t">
+      <div className="p-6 border-t bg-white">
         <Button
           variant="outline"
           size="sm"
-          className="w-full"
+          className="w-full flex items-center justify-center gap-2"
           onClick={() => setShowDetails(true)}
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="h-4 w-4" />
           Voir les détails
         </Button>
       </div>
