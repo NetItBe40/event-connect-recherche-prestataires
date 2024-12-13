@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { useState } from "react";
@@ -9,6 +9,8 @@ export function TestDescription() {
   
   const handleTest = async () => {
     try {
+      console.log("Début du test d'écriture...");
+      
       const { data, error } = await supabase
         .from('places')
         .update({ description: 'test' })
