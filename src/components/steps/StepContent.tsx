@@ -76,7 +76,7 @@ export function StepContent({
         website: selectedPlace?.website || "",
         phone: selectedPlace?.phone || "",
         type: selectedPlace?.type || "",
-        openingHours: selectedPlace?.openingHours || {},
+        openingHours: selectedPlace?.opening_hours || {},
         facebook: selectedPlace?.facebook || "",
         instagram: selectedPlace?.instagram || "",
         tiktok: selectedPlace?.tiktok || "",
@@ -89,6 +89,8 @@ export function StepContent({
         email_1: selectedPlace?.email_1 || "",
         email_2: selectedPlace?.email_2 || "",
       };
+
+      console.log("EnrichmentStep - initialData:", initialData);
 
       return (
         <EnrichmentStep 
