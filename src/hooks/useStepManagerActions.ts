@@ -35,6 +35,10 @@ export function useStepManagerActions() {
         query: params.query,
         country: params.country,
         limit: parseInt(params.limit),
+        lang: "fr",
+        zoom: "13",
+        offset: "0",
+        flatten: false
       };
 
       // Ajouter les coordonnées si disponibles
@@ -51,7 +55,7 @@ export function useStepManagerActions() {
       console.log("Paramètres de recherche:", searchParams);
 
       // Faire la requête à l'API Scrapetable avec le bon endpoint
-      const response = await fetch("https://api.scrapetable.com/v1/website/search", {
+      const response = await fetch("https://api.scrapetable.com/maps/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
