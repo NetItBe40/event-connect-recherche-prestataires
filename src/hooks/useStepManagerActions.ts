@@ -50,8 +50,8 @@ export function useStepManagerActions() {
 
       console.log("Paramètres de recherche:", searchParams);
 
-      // Faire la requête à l'API Scrapetable
-      const response = await fetch("https://api.scrapetable.com/google/maps/search", {
+      // Faire la requête à l'API Scrapetable avec le bon endpoint v1
+      const response = await fetch("https://api.scrapetable.com/v1/google/maps/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,6 +61,12 @@ export function useStepManagerActions() {
       });
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Erreur API:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorData
+        });
         throw new Error("Erreur lors de la recherche");
       }
 
