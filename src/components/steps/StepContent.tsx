@@ -63,6 +63,10 @@ export function StepContent({
           placeId={selectedPlace?.id}
           title={selectedPlace?.title || ""}
           address={selectedPlace?.address || ""}
+          type={selectedPlace?.type}
+          rating={selectedPlace?.rating}
+          phone={selectedPlace?.phone}
+          description={selectedPlace?.description}
         />
       );
     case 2:
