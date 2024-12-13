@@ -28,7 +28,7 @@ export function StepContent({
   if (selectedPlace) {
     console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
     
-    if (currentStep === 1) {
+    if (currentStep === 2) {
       console.log("StepContent - Préparation des données pour EnrichmentStep");
       console.log("StepContent - Website depuis selectedPlace:", selectedPlace.website);
     }
@@ -59,6 +59,14 @@ export function StepContent({
       );
     case 1:
       return (
+        <ChatGPTStep 
+          placeId={selectedPlace?.id}
+          title={selectedPlace?.title || ""}
+          address={selectedPlace?.address || ""}
+        />
+      );
+    case 2:
+      return (
         <EnrichmentStep
           placeId={selectedPlace?.id}
           initialData={{
@@ -80,17 +88,9 @@ export function StepContent({
           }}
         />
       );
-    case 2:
-      return (
-        <BingImageStep 
-          placeId={selectedPlace?.id}
-          title={selectedPlace?.title || ""}
-          address={selectedPlace?.address || ""}
-        />
-      );
     case 3:
       return (
-        <ChatGPTStep 
+        <BingImageStep 
           placeId={selectedPlace?.id}
           title={selectedPlace?.title || ""}
           address={selectedPlace?.address || ""}
