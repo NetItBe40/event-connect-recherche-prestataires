@@ -2,6 +2,7 @@ import { SearchForm } from "../SearchForm";
 import { ResultsList } from "../ResultsList";
 import { BingImageStep } from "./BingImageStep";
 import { ChatGPTStep } from "./ChatGPTStep";
+import { CategoryStep } from "./CategoryStep";
 import { ExistingPlacesList } from "../ExistingPlacesList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -73,6 +74,10 @@ export function StepContent({
           title={selectedPlace?.title || ""}
           address={selectedPlace?.address || ""}
         />
+      );
+    case 3:
+      return (
+        <CategoryStep placeId={placeIdentifier} />
       );
     default:
       return null;
