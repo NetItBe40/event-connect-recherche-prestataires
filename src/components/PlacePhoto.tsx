@@ -1,7 +1,13 @@
 import { Camera } from "lucide-react";
 
+interface PhotoObject {
+  src: string;
+  max_size?: [number, number];
+  min_size?: [number, number];
+}
+
 interface PlacePhotoProps {
-  photo: any; // On accepte tout type pour le moment car le format peut varier
+  photo: string | PhotoObject | PhotoObject[] | null; // Accept string, photo object, or array of photo objects
   title: string;
 }
 
@@ -15,10 +21,16 @@ export function PlacePhoto({ photo, title }: PlacePhotoProps) {
     );
   }
 
-  // Si c'est un tableau de photos, on prend la première
-  const photoUrl = Array.isArray(photo) && photo.length > 0 
-    ? photo[0].src 
-    : (typeof photo === 'string' ? photo : null);
+  // Extraire l'URL de la photo selon son type
+  let photoUrl: string | null = null;
+
+  if (typeof photo === 'string') {
+    photoUrl = photo;
+  } else if (Array.isArray(photo) && photo.length > 0 && photo[0].src) {
+    photoUrl = photo[0].src;
+  } else if ((photo as PhotoObject).src) {
+    photoUrl = (photo as PhotoObject).src;
+  }
 
   // Si on n'a pas réussi à extraire une URL valide
   if (!photoUrl) {
