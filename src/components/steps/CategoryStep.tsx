@@ -9,6 +9,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Category {
   id: string;
@@ -19,6 +20,7 @@ interface Category {
 interface Subcategory {
   id: string;
   name: string;
+  suggested?: boolean;
 }
 
 interface CategoryStepProps {
@@ -62,7 +64,34 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
         })
       );
 
-      setCategories(categoriesWithSubs);
+      // Récupérer la description et le type du lieu
+      const { data: placeData, error: placeError } = await supabase
+        .from('places')
+        .select('description, type')
+        .eq('id', placeId)
+        .single();
+
+      if (placeError) throw placeError;
+
+      // Analyser la description pour suggérer des catégories
+      const suggestedCategories = analyzePlaceData(
+        placeData.description || "",
+        placeData.type || "",
+        categoriesWithSubs
+      );
+
+      // Marquer les sous-catégories suggérées
+      const categoriesWithSuggestions = categoriesWithSubs.map(category => ({
+        ...category,
+        subcategories: category.subcategories.map(sub => ({
+          ...sub,
+          suggested: suggestedCategories.includes(sub.id)
+        }))
+      }));
+
+      setCategories(categoriesWithSuggestions);
+      // Présélectionner les catégories suggérées
+      setSelectedSubcategories(suggestedCategories);
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
       toast({
@@ -73,6 +102,38 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const analyzePlaceData = (description: string, type: string, categories: Category[]): string[] => {
+    const suggestedIds: string[] = [];
+    const text = `${description} ${type}`.toLowerCase();
+    
+    // Parcourir toutes les catégories et sous-catégories
+    categories.forEach(category => {
+      const categoryKeywords = category.name.toLowerCase().split(' ');
+      
+      category.subcategories.forEach(subcategory => {
+        const subcategoryKeywords = subcategory.name.toLowerCase().split(' ');
+        let score = 0;
+        
+        // Vérifier les mots-clés de la catégorie
+        categoryKeywords.forEach(keyword => {
+          if (text.includes(keyword)) score += 1;
+        });
+        
+        // Vérifier les mots-clés de la sous-catégorie
+        subcategoryKeywords.forEach(keyword => {
+          if (text.includes(keyword)) score += 2;
+        });
+        
+        // Si le score est suffisant, suggérer cette sous-catégorie
+        if (score >= 1) {
+          suggestedIds.push(subcategory.id);
+        }
+      });
+    });
+    
+    return suggestedIds;
   };
 
   const fetchExistingSelections = async () => {
@@ -165,6 +226,11 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
                     >
                       {subcategory.name}
                     </label>
+                    {subcategory.suggested && (
+                      <Badge variant="secondary" className="ml-2">
+                        Suggéré
+                      </Badge>
+                    )}
                   </div>
                 ))}
               </div>
