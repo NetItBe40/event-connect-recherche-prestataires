@@ -6,7 +6,9 @@ import { PlaceDetails } from "./place/PlaceDetails";
 import { useEffect, useState } from "react";
 import { useSupabaseSearch } from "@/hooks/useSupabaseSearch";
 import { Badge } from "./ui/badge";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Eye } from "lucide-react";
+import { Button } from "./ui/button";
+import { PlaceDetailsDialog } from "./PlaceDetailsDialog";
 
 interface Place {
   id?: string;
@@ -42,6 +44,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
   const { toast } = useToast();
   const { checkExistingPlace } = useSupabaseSearch();
   const [existingPlace, setExistingPlace] = useState<Place | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const checkPlace = async () => {
@@ -53,7 +56,6 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
 
   const handleSelect = async () => {
     try {
-      // Validation des champs obligatoires
       if (!place.title || !place.address) {
         toast({
           variant: "destructive",
@@ -63,7 +65,6 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         return;
       }
 
-      // Ensure reviews is just the number before saving
       const reviews = place.reviews ? place.reviews.toString().replace(/\s+avis$/, '') : null;
 
       const { error } = await supabase
@@ -121,14 +122,30 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         id={place.id}
         onSelect={handleSelect}
       >
-        {existingPlace && (
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <AlertCircle className="h-4 w-4" />
-            Fiche existante
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {existingPlace && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              Fiche existante
+            </Badge>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => setShowDetails(true)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Voir les détails
+          </Button>
+        </div>
       </PlaceHeader>
       <PlaceDetails place={place} />
+      <PlaceDetailsDialog 
+        place={place}
+        open={showDetails}
+        onOpenChange={setShowDetails}
+      />
     </Card>
   );
 }
