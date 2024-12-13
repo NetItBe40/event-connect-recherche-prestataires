@@ -115,7 +115,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
   };
 
   return (
-    <Card className="h-full">
+    <Card className="overflow-hidden">
       <PlaceHeader 
         title={place.title}
         verified={place.verified}
@@ -130,7 +130,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         )}
       </PlaceHeader>
       <PlaceDetails place={place} />
-      <div className="p-6 pt-0">
+      <div className="p-6 border-t">
         <Button
           variant="outline"
           size="sm"
