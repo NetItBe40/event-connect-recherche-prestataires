@@ -78,6 +78,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
       }
     }
     
+    console.log("Paramètres de recherche:", params);
     onSearch(params);
   };
 
