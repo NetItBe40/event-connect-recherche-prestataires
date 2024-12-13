@@ -7,19 +7,6 @@ export async function fetchSocialMediaData(website: string) {
   const normalizedWebsite = website.startsWith('http') ? website : `https://${website}`;
   console.log("🌐 URL normalisée:", normalizedWebsite);
 
-  const { data: apiKeyData, error: apiKeyError } = await supabase
-    .from('apikeys')
-    .select('apikey')
-    .eq('provider', 'scrapetable')
-    .single();
-
-  if (apiKeyError || !apiKeyData?.apikey) {
-    console.error("❌ Erreur lors de la récupération de la clé API:", apiKeyError);
-    throw new Error("Impossible de récupérer la clé API Scrapetable");
-  }
-
-  console.log("✅ Clé API récupérée avec succès");
-
   try {
     console.log("📡 Appel de l'API email-socials avec le site web:", normalizedWebsite);
     
@@ -27,7 +14,7 @@ export async function fetchSocialMediaData(website: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "api-key": apiKeyData.apikey,
+        "api-key": "333560f1da2bc2c0fd39bfd3f4e1567b9b208d9ace5945433a3e1a75a5232657",
       },
       body: JSON.stringify({
         websites: [normalizedWebsite],
