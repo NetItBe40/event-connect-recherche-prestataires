@@ -25,6 +25,7 @@ export function StepContent({
 }: StepContentProps) {
   console.log("StepContent - Étape actuelle:", currentStep);
   console.log("StepContent - Données complètes du lieu sélectionné:", selectedPlace);
+  console.log("StepContent - Structure complète de selectedPlace:", JSON.stringify(selectedPlace, null, 2));
   
   if (!selectedPlace && currentStep > 0) {
     return (
@@ -72,6 +73,9 @@ export function StepContent({
         />
       );
     case 2:
+      console.log("StepContent - Préparation des données pour EnrichmentStep");
+      console.log("StepContent - Website depuis selectedPlace:", selectedPlace?.website);
+      
       const initialData = {
         website: selectedPlace?.website || "",
         phone: selectedPlace?.phone || "",
@@ -92,6 +96,7 @@ export function StepContent({
 
       console.log("EnrichmentStep - Données initiales complètes:", initialData);
       console.log("EnrichmentStep - Website value:", selectedPlace?.website);
+      console.log("EnrichmentStep - Clés disponibles dans selectedPlace:", Object.keys(selectedPlace || {}));
 
       return (
         <EnrichmentStep 
