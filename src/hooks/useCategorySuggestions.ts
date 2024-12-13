@@ -24,28 +24,55 @@ export function useCategorySuggestions(placeId: string) {
     const suggestedIds: string[] = [];
     const text = `${description} ${type}`.toLowerCase();
     
+    // Mots-clés spécifiques par catégorie
+    const categoryKeywords: { [key: string]: string[] } = {
+      "Lieux": ["salle", "château", "domaine", "espace", "lieu", "villa", "manoir"],
+      "Traiteurs": ["traiteur", "cuisine", "gastronomie", "chef", "repas", "buffet"],
+      "Animation": ["dj", "musique", "animation", "spectacle", "artiste", "band", "groupe"],
+      "Décoration": ["décor", "fleur", "design", "ambiance", "scénographie"],
+      "Photo & Vidéo": ["photo", "vidéo", "photographe", "cameraman", "film", "reportage"],
+      "Services": ["organisation", "planification", "coordination", "wedding planner"]
+    };
+    
     categories.forEach(category => {
-      const categoryKeywords = category.name.toLowerCase().split(' ');
+      const relevantKeywords = categoryKeywords[category.name] || [];
+      let categoryScore = 0;
       
-      category.subcategories.forEach(subcategory => {
-        const subcategoryKeywords = subcategory.name.toLowerCase().split(' ');
-        let score = 0;
-        
-        categoryKeywords.forEach(keyword => {
-          if (text.includes(keyword)) score += 1;
-        });
-        
-        subcategoryKeywords.forEach(keyword => {
-          if (text.includes(keyword)) score += 2;
-        });
-        
-        if (score >= 1) {
-          suggestedIds.push(subcategory.id);
+      // Vérifie les mots-clés de la catégorie
+      relevantKeywords.forEach(keyword => {
+        if (text.includes(keyword)) {
+          categoryScore += 2;
         }
       });
+      
+      // Si la catégorie est pertinente, analyse les sous-catégories
+      if (categoryScore > 0) {
+        category.subcategories.forEach(subcategory => {
+          const subcategoryWords = subcategory.name.toLowerCase().split(' ');
+          let subcategoryScore = 0;
+          
+          // Analyse plus précise des sous-catégories
+          subcategoryWords.forEach(word => {
+            if (text.includes(word) && word.length > 3) { // Ignore les mots trop courts
+              subcategoryScore += 3;
+            }
+          });
+          
+          // Vérifie les expressions exactes
+          if (text.includes(subcategory.name.toLowerCase())) {
+            subcategoryScore += 5;
+          }
+          
+          // Ajoute seulement si le score est suffisamment élevé
+          if (subcategoryScore >= 5) {
+            suggestedIds.push(subcategory.id);
+          }
+        });
+      }
     });
     
-    return suggestedIds;
+    // Limite le nombre de suggestions à 3 maximum par catégorie
+    return suggestedIds.slice(0, 3);
   };
 
   const fetchCategories = async () => {
