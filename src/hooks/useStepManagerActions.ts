@@ -79,12 +79,12 @@ export function useStepManagerActions() {
 
       // Formater les résultats
       const formattedResults = data.map((place: any) => ({
-        title: place.title,
-        address: place.address,
+        title: place.name,
+        address: place.full_address,
         rating: place.rating,
-        reviews: place.reviews,
-        type: place.type,
-        phone: place.phone,
+        reviews: `${place.review_count} avis`,
+        type: place.types?.[0],
+        phone: place.phone_number,
         website: place.website,
         latitude: place.latitude,
         longitude: place.longitude,
@@ -92,7 +92,7 @@ export function useStepManagerActions() {
         placeId: place.place_id,
         placeLink: place.place_link,
         priceLevel: place.price_level,
-        openingHours: place.opening_hours,
+        openingHours: place.working_hours,
         city: place.city,
         state: place.state,
         photos: place.photos?.[0],
