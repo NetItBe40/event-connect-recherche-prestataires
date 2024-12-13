@@ -19,7 +19,6 @@ export function useStepManagerActions() {
   const handleSearch = useCallback(async (params: SearchParams) => {
     setIsLoading(true);
     try {
-      // Récupérer la clé API de Scrapetable depuis la base de données
       const { data: apiKeyData, error: apiKeyError } = await supabase
         .from('apikeys')
         .select('apikey')
@@ -30,7 +29,6 @@ export function useStepManagerActions() {
         throw new Error("Impossible de récupérer la clé API Scrapetable");
       }
 
-      // Construire les paramètres de recherche
       const searchParams: any = {
         query: params.query,
         country: params.country,
@@ -41,20 +39,17 @@ export function useStepManagerActions() {
         flatten: false
       };
 
-      // Ajouter les coordonnées si disponibles
       if (params.lat && params.lng) {
         searchParams.lat = parseFloat(params.lat);
         searchParams.lng = parseFloat(params.lng);
       }
 
-      // Ajouter le placeId si disponible
       if (params.placeId) {
         searchParams.place_id = params.placeId;
       }
 
       console.log("Paramètres de recherche:", searchParams);
 
-      // Faire la requête à l'API Scrapetable avec le bon endpoint
       const response = await fetch("https://api.scrapetable.com/maps/search", {
         method: "POST",
         headers: {
@@ -77,12 +72,12 @@ export function useStepManagerActions() {
       const data = await response.json();
       console.log("Résultats de la recherche:", data);
 
-      // Formater les résultats
+      // Formater les résultats en extrayant uniquement le nombre d'avis
       const formattedResults = data.map((place: any) => ({
         title: place.name,
         address: place.full_address,
         rating: place.rating,
-        reviews: `${place.review_count} avis`,
+        reviews: place.review_count, // Stocke uniquement le nombre d'avis
         type: place.types?.[0],
         phone: place.phone_number,
         website: place.website,
