@@ -25,6 +25,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [filters, setFilters] = useState({
     hasDescription: false,
     hasBingPhoto: false,
@@ -91,8 +92,8 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       }
 
       console.log("Suppression réussie, mise à jour de la liste");
-      // Mise à jour immédiate de l'état local
-      setPlaces(currentPlaces => currentPlaces.filter(place => place.id !== placeId));
+      // Forcer un rafraîchissement de la liste
+      setRefreshTrigger(prev => prev + 1);
       
       toast({
         title: "Succès",
@@ -109,9 +110,9 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   };
 
   useEffect(() => {
-    console.log("Effect déclenché - Recherche ou filtres modifiés");
+    console.log("Effect déclenché - Recherche, filtres ou rafraîchissement modifiés");
     fetchPlaces(searchQuery);
-  }, [searchQuery, filters]);
+  }, [searchQuery, filters, refreshTrigger]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
