@@ -23,8 +23,9 @@ interface ExistingPlacesListProps {
 export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
-    hasDescription: false,
-    hasBingPhoto: false,
+    noDescription: false,
+    noBingPhoto: false,
+    categoryId: '',
   });
 
   const { places, isLoading, fetchPlaces, handleDelete } = usePlacesManagement();
@@ -40,11 +41,19 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     fetchPlaces(searchQuery, filters);
   };
 
-  const handleFilterChange = (filterName: keyof typeof filters) => {
+  const handleFilterChange = (filterName: 'noDescription' | 'noBingPhoto') => {
     console.log("Changement de filtre:", filterName);
     setFilters(prev => ({
       ...prev,
       [filterName]: !prev[filterName]
+    }));
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    console.log("Changement de catégorie:", categoryId);
+    setFilters(prev => ({
+      ...prev,
+      categoryId
     }));
   };
 
@@ -60,6 +69,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       <FilterOptions 
         filters={filters}
         onFilterChange={handleFilterChange}
+        onCategoryChange={handleCategoryChange}
       />
 
       <PlacesList 

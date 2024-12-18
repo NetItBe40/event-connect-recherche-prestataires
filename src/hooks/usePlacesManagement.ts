@@ -15,8 +15,9 @@ interface Place {
 }
 
 interface PlacesManagementFilters {
-  hasDescription: boolean;
-  hasBingPhoto: boolean;
+  noDescription: boolean;
+  noBingPhoto: boolean;
+  categoryId?: string;
 }
 
 export function usePlacesManagement() {
@@ -24,8 +25,9 @@ export function usePlacesManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentFilters, setCurrentFilters] = useState<PlacesManagementFilters>({
-    hasDescription: false,
-    hasBingPhoto: false,
+    noDescription: false,
+    noBingPhoto: false,
+    categoryId: '',
   });
   const { toast } = useToast();
 
@@ -38,23 +40,30 @@ export function usePlacesManagement() {
     try {
       let supabaseQuery = supabase
         .from('places')
-        .select('id, title, address, phone, type, rating, description, photobing1, website');
+        .select(`
+          *,
+          place_subcategories!inner(
+            subcategory_id,
+            subcategories!inner(
+              category_id
+            )
+          )
+        `);
 
       if (query) {
         supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
       }
 
-      if (filters.hasDescription) {
-        supabaseQuery = supabaseQuery
-          .not('description', 'is', null)
-          .not('description', 'eq', '')
-          .not('description', 'eq', '[]');
+      if (filters.noDescription) {
+        supabaseQuery = supabaseQuery.or('description.is.null,description.eq.,description.eq.[]');
       }
 
-      if (filters.hasBingPhoto) {
-        supabaseQuery = supabaseQuery
-          .not('photobing1', 'is', null)
-          .not('photobing1', 'eq', '');
+      if (filters.noBingPhoto) {
+        supabaseQuery = supabaseQuery.or('photobing1.is.null,photobing1.eq.');
+      }
+
+      if (filters.categoryId) {
+        supabaseQuery = supabaseQuery.eq('place_subcategories.subcategories.category_id', filters.categoryId);
       }
 
       console.log("Envoi de la requête Supabase");
@@ -65,8 +74,10 @@ export function usePlacesManagement() {
         throw error;
       }
       
-      console.log("Données reçues:", data?.length, "places");
-      setPlaces(data || []);
+      // Dédupliquer les résultats car les jointures peuvent créer des doublons
+      const uniquePlaces = Array.from(new Map(data?.map(item => [item.id, item])).values());
+      console.log("Données reçues:", uniquePlaces.length, "places");
+      setPlaces(uniquePlaces);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
       toast({
@@ -121,7 +132,7 @@ export function usePlacesManagement() {
       });
     } catch (error) {
       console.error("Erreur complète lors de la suppression:", error);
-      // Restaurer l'état précédent en cas d'erreur en utilisant les derniers paramètres de recherche
+      // Restaurer l'état précédent en cas d'erreur
       fetchPlaces(currentQuery, currentFilters);
       toast({
         variant: "destructive",
