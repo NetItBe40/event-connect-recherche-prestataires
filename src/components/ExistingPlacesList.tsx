@@ -81,7 +81,15 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const handleDelete = async (placeId: string) => {
     console.log("Début de la suppression pour le lieu:", placeId);
     try {
-      console.log("Construction de la requête de suppression...");
+      // Mise à jour optimiste de l'état local
+      setPlaces(currentPlaces => {
+        console.log("Mise à jour optimiste - avant:", currentPlaces.length, "places");
+        const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
+        console.log("Mise à jour optimiste - après:", updatedPlaces.length, "places");
+        return updatedPlaces;
+      });
+
+      console.log("Envoi de la requête de suppression à Supabase");
       const { error } = await supabase
         .from('places')
         .delete()
@@ -89,23 +97,12 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
       if (error) {
         console.error("Erreur Supabase lors de la suppression:", error);
+        // En cas d'erreur, on recharge les données pour rétablir l'état correct
+        await fetchPlaces(searchQuery);
         throw error;
       }
 
       console.log("Suppression réussie dans la base de données");
-      
-      // Mise à jour optimiste de l'état local
-      setPlaces(currentPlaces => {
-        console.log("Mise à jour de l'état local - avant:", currentPlaces.length, "places");
-        const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
-        console.log("Mise à jour de l'état local - après:", updatedPlaces.length, "places");
-        return updatedPlaces;
-      });
-
-      // Rafraîchissement des données depuis la base
-      console.log("Rafraîchissement de la liste complète");
-      await fetchPlaces(searchQuery);
-      
       toast({
         title: "Succès",
         description: "Le prestataire a été supprimé",
