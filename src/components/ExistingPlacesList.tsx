@@ -79,14 +79,32 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     try {
       console.log("Début de la suppression du lieu:", placeId);
       
-      const { error } = await supabase
+      // Vérifier d'abord si le lieu existe toujours
+      const { data: existingPlace, error: checkError } = await supabase
+        .from('places')
+        .select('id')
+        .eq('id', placeId)
+        .single();
+
+      if (checkError) {
+        console.error("Erreur lors de la vérification du lieu:", checkError);
+        throw checkError;
+      }
+
+      if (!existingPlace) {
+        console.error("Le lieu n'existe pas ou a déjà été supprimé");
+        throw new Error("Le lieu n'existe pas");
+      }
+
+      // Effectuer la suppression
+      const { error: deleteError } = await supabase
         .from('places')
         .delete()
         .eq('id', placeId);
 
-      if (error) {
-        console.error("Erreur Supabase lors de la suppression:", error);
-        throw error;
+      if (deleteError) {
+        console.error("Erreur Supabase lors de la suppression:", deleteError);
+        throw deleteError;
       }
 
       console.log("Suppression réussie, mise à jour de l'interface");
