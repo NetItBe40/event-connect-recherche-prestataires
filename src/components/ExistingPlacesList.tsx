@@ -32,6 +32,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const { toast } = useToast();
 
   const fetchPlaces = async (query: string = '') => {
+    console.log("Fetching places with query:", query);
     setIsLoading(true);
     try {
       let supabaseQuery = supabase
@@ -57,7 +58,12 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
       const { data, error } = await supabaseQuery;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Places récupérées:", data);
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
@@ -72,38 +78,49 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   };
 
   const handleDelete = async (placeId: string) => {
-    const { error } = await supabase
-      .from('places')
-      .delete()
-      .eq('id', placeId);
+    console.log("Tentative de suppression du lieu:", placeId);
+    try {
+      const { error } = await supabase
+        .from('places')
+        .delete()
+        .eq('id', placeId);
 
-    if (error) {
+      if (error) {
+        console.error("Erreur lors de la suppression:", error);
+        throw error;
+      }
+
+      console.log("Suppression réussie, mise à jour de la liste");
+      // Mise à jour immédiate de l'état local
+      setPlaces(currentPlaces => currentPlaces.filter(place => place.id !== placeId));
+      
+      toast({
+        title: "Succès",
+        description: "Le prestataire a été supprimé",
+      });
+    } catch (error) {
+      console.error("Erreur complète:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de supprimer le prestataire",
       });
-      return;
     }
-
-    setPlaces(places.filter(place => place.id !== placeId));
-    
-    toast({
-      title: "Succès",
-      description: "Le prestataire a été supprimé",
-    });
   };
 
   useEffect(() => {
+    console.log("Effect déclenché - Recherche ou filtres modifiés");
     fetchPlaces(searchQuery);
   }, [searchQuery, filters]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Recherche lancée");
     fetchPlaces(searchQuery);
   };
 
   const handleFilterChange = (filterName: keyof typeof filters) => {
+    console.log("Changement de filtre:", filterName);
     setFilters(prev => ({
       ...prev,
       [filterName]: !prev[filterName]

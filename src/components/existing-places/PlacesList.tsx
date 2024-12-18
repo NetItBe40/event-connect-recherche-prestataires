@@ -31,10 +31,17 @@ export function PlacesList({ places, isLoading, onSelect, onDelete }: PlacesList
   return (
     <div className="space-y-4">
       {places.map((place) => (
-        <div key={place.id} onClick={() => onSelect(place)} className="cursor-pointer">
+        <div 
+          key={place.id} 
+          onClick={() => onSelect(place)} 
+          className="cursor-pointer"
+        >
           <ExistingPlaceAlert 
             place={place} 
-            onDelete={() => onDelete(place.id)}
+            onDelete={() => {
+              console.log("Demande de suppression pour:", place.id);
+              onDelete(place.id);
+            }}
           />
         </div>
       ))}
