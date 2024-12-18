@@ -32,7 +32,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const { toast } = useToast();
 
   const fetchPlaces = async (query: string = '') => {
-    console.log("Fetching places with query:", query);
+    console.log("Début du fetchPlaces avec query:", query, "et filtres:", filters);
     setIsLoading(true);
     try {
       let supabaseQuery = supabase
@@ -56,6 +56,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
           .not('photobing1', 'eq', '');
       }
 
+      console.log("Envoi de la requête Supabase");
       const { data, error } = await supabaseQuery;
 
       if (error) {
@@ -63,7 +64,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
         throw error;
       }
       
-      console.log("Places récupérées:", data);
+      console.log("Données reçues:", data?.length, "places");
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
@@ -91,15 +92,19 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
         throw error;
       }
 
-      console.log("Suppression réussie, mise à jour de l'état local");
+      console.log("Suppression réussie dans la base de données");
       
-      // Mise à jour immédiate de l'état local
+      // Mise à jour optimiste de l'état local
       setPlaces(currentPlaces => {
         console.log("Mise à jour de l'état local - avant:", currentPlaces.length, "places");
         const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
         console.log("Mise à jour de l'état local - après:", updatedPlaces.length, "places");
         return updatedPlaces;
       });
+
+      // Rafraîchissement des données depuis la base
+      console.log("Rafraîchissement de la liste complète");
+      await fetchPlaces(searchQuery);
       
       toast({
         title: "Succès",
