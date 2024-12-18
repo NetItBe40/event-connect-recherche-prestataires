@@ -1,6 +1,18 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Info, CheckCircle, XCircle } from "lucide-react";
+import { Info, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Place {
   title: string;
@@ -14,9 +26,10 @@ interface Place {
 
 interface ExistingPlaceAlertProps {
   place: Place;
+  onDelete: () => void;
 }
 
-export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
+export function ExistingPlaceAlert({ place, onDelete }: ExistingPlaceAlertProps) {
   // Vérifie si la description est réellement présente (pas null, undefined, ou chaîne vide)
   const hasDescription = place.description && place.description !== '[]' && place.description !== '';
   
@@ -24,7 +37,7 @@ export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
   const hasBingPhoto = place.photobing1 && place.photobing1 !== '';
 
   return (
-    <Alert className="max-w-2xl mx-auto">
+    <Alert className="max-w-2xl mx-auto relative">
       <Info className="h-4 w-4" />
       <AlertTitle className="flex items-center gap-2">
         <span>{place.title}</span>
@@ -51,6 +64,34 @@ export function ExistingPlaceAlert({ place }: ExistingPlaceAlertProps) {
             )}
             Photo Bing
           </Badge>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Cela supprimera définitivement la fiche de {place.title}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}>
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </AlertTitle>
       <AlertDescription>
