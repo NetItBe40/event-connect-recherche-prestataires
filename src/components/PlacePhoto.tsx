@@ -3,6 +3,7 @@ import { Camera } from "lucide-react";
 interface PhotoObject {
   src?: string;
   url?: string;
+  contentUrl?: string;
   max_size?: [number, number];
   min_size?: [number, number];
 }
@@ -34,8 +35,7 @@ export function PlacePhoto({ photo, title }: PlacePhotoProps) {
     photoUrl = photo[0].src || photo[0].url || photo[0].contentUrl || null;
   } else if (typeof photo === 'object' && photo !== null) {
     // Si c'est un objet unique, chercher src, url ou contentUrl
-    const photoObj = photo as PhotoObject & { contentUrl?: string };
-    photoUrl = photoObj.src || photoObj.url || photoObj.contentUrl || null;
+    photoUrl = photo.src || photo.url || photo.contentUrl || null;
   }
 
   console.log("PlacePhoto - URL extraite:", photoUrl);
