@@ -22,11 +22,19 @@ interface PlacesManagementFilters {
 export function usePlacesManagement() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState('');
+  const [currentFilters, setCurrentFilters] = useState<PlacesManagementFilters>({
+    hasDescription: false,
+    hasBingPhoto: false,
+  });
   const { toast } = useToast();
 
   const fetchPlaces = async (query: string = '', filters: PlacesManagementFilters) => {
     console.log("Début du fetchPlaces avec query:", query, "et filtres:", filters);
     setIsLoading(true);
+    setCurrentQuery(query);
+    setCurrentFilters(filters);
+    
     try {
       let supabaseQuery = supabase
         .from('places')
@@ -113,8 +121,8 @@ export function usePlacesManagement() {
       });
     } catch (error) {
       console.error("Erreur complète lors de la suppression:", error);
-      // Restaurer l'état précédent en cas d'erreur
-      fetchPlaces();
+      // Restaurer l'état précédent en cas d'erreur en utilisant les derniers paramètres de recherche
+      fetchPlaces(currentQuery, currentFilters);
       toast({
         variant: "destructive",
         title: "Erreur",
