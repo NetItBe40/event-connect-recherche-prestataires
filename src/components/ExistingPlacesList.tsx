@@ -77,18 +77,22 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
   const handleDelete = async (placeId: string) => {
     try {
-      // Effectuer la suppression dans Supabase
+      console.log("Début de la suppression du lieu:", placeId);
+      
       const { error } = await supabase
         .from('places')
         .delete()
         .eq('id', placeId);
 
       if (error) {
+        console.error("Erreur Supabase lors de la suppression:", error);
         throw error;
       }
 
-      // Si la suppression a réussi, mettre à jour l'état local
-      setPlaces(currentPlaces => currentPlaces.filter(place => place.id !== placeId));
+      console.log("Suppression réussie, mise à jour de l'interface");
+      
+      // Mise à jour de l'état local après une suppression réussie
+      setPlaces(prevPlaces => prevPlaces.filter(place => place.id !== placeId));
 
       toast({
         title: "Succès",
@@ -102,8 +106,8 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
         title: "Erreur",
         description: "Une erreur est survenue lors de la suppression",
       });
-      // En cas d'erreur, rafraîchir la liste pour s'assurer que l'état est cohérent
-      fetchPlaces(searchQuery);
+      // Rafraîchir la liste en cas d'erreur
+      await fetchPlaces(searchQuery);
     }
   };
 
