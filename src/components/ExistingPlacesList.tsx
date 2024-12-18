@@ -25,7 +25,6 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [filters, setFilters] = useState({
     hasDescription: false,
     hasBingPhoto: false,
@@ -60,7 +59,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       const { data, error } = await supabaseQuery;
 
       if (error) {
-        console.error("Erreur Supabase:", error);
+        console.error("Erreur Supabase lors du fetch:", error);
         throw error;
       }
       
@@ -79,28 +78,36 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   };
 
   const handleDelete = async (placeId: string) => {
-    console.log("Tentative de suppression du lieu:", placeId);
+    console.log("Début de la suppression pour le lieu:", placeId);
     try {
-      const { error } = await supabase
+      console.log("Construction de la requête de suppression...");
+      const { error, count } = await supabase
         .from('places')
         .delete()
-        .eq('id', placeId);
+        .eq('id', placeId)
+        .select('count');
 
       if (error) {
-        console.error("Erreur lors de la suppression:", error);
+        console.error("Erreur Supabase lors de la suppression:", error);
         throw error;
       }
 
-      console.log("Suppression réussie, mise à jour de la liste");
-      // Forcer un rafraîchissement de la liste
-      setRefreshTrigger(prev => prev + 1);
+      console.log("Réponse de suppression:", { count });
+      
+      // Mise à jour immédiate de l'état local
+      setPlaces(currentPlaces => {
+        console.log("Mise à jour de l'état local - avant:", currentPlaces.length, "places");
+        const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
+        console.log("Mise à jour de l'état local - après:", updatedPlaces.length, "places");
+        return updatedPlaces;
+      });
       
       toast({
         title: "Succès",
         description: "Le prestataire a été supprimé",
       });
     } catch (error) {
-      console.error("Erreur complète:", error);
+      console.error("Erreur complète lors de la suppression:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -110,9 +117,9 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   };
 
   useEffect(() => {
-    console.log("Effect déclenché - Recherche, filtres ou rafraîchissement modifiés");
+    console.log("Effect déclenché - Recherche ou filtres modifiés");
     fetchPlaces(searchQuery);
-  }, [searchQuery, filters, refreshTrigger]);
+  }, [searchQuery, filters]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
