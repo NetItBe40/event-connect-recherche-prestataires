@@ -2,10 +2,12 @@ import { Checkbox } from "../ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "../ui/badge";
 
 interface Category {
   id: string;
   name: string;
+  count?: number;
 }
 
 interface FilterOptionsProps {
@@ -20,18 +22,60 @@ interface FilterOptionsProps {
 
 export function FilterOptions({ filters, onFilterChange, onCategoryChange }: FilterOptionsProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const { data } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      if (data) {
-        setCategories(data);
+    const fetchCategoriesWithCount = async () => {
+      setIsLoading(true);
+      try {
+        // Récupérer toutes les catégories
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+
+        if (!categoriesData) return;
+
+        // Pour chaque catégorie, compter le nombre de prestataires
+        const categoriesWithCount = await Promise.all(
+          categoriesData.map(async (category) => {
+            const { count } = await supabase
+              .from('places')
+              .select('*', { count: 'exact', head: true })
+              .in('id', (sb) =>
+                sb.from('place_subcategories')
+                  .select('place_id')
+                  .in('subcategory_id', (sb) =>
+                    sb.from('subcategories')
+                      .select('id')
+                      .eq('category_id', category.id)
+                  )
+              );
+
+            return {
+              ...category,
+              count: count || 0
+            };
+          })
+        );
+
+        // Compter le nombre total de prestataires pour "Toutes les catégories"
+        const { count: totalCount } = await supabase
+          .from('places')
+          .select('*', { count: 'exact', head: true });
+
+        setCategories([
+          { id: 'all', name: 'Toutes les catégories', count: totalCount || 0 },
+          ...categoriesWithCount
+        ]);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des catégories:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchCategories();
+
+    fetchCategoriesWithCount();
   }, []);
 
   return (
@@ -68,14 +112,16 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
         value={filters.categoryId}
         onValueChange={onCategoryChange}
       >
-        <SelectTrigger className="w-[200px]">
+        <SelectTrigger className="w-[300px]">
           <SelectValue placeholder="Filtrer par catégorie" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Toutes les catégories</SelectItem>
           {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              {category.name}
+            <SelectItem key={category.id} value={category.id} className="flex items-center justify-between">
+              <span>{category.name}</span>
+              <Badge variant="secondary" className="ml-2">
+                {category.count}
+              </Badge>
             </SelectItem>
           ))}
         </SelectContent>
