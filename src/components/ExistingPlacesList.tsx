@@ -77,41 +77,18 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
   const handleDelete = async (placeId: string) => {
     try {
-      console.log("Début de la suppression du lieu:", placeId);
+      console.log("Suppression du lieu:", placeId);
       
-      // Vérifier d'abord si le lieu existe toujours
-      const { data: existingPlace, error: checkError } = await supabase
-        .from('places')
-        .select('id')
-        .eq('id', placeId)
-        .single();
-
-      if (checkError) {
-        console.error("Erreur lors de la vérification du lieu:", checkError);
-        throw checkError;
-      }
-
-      if (!existingPlace) {
-        console.error("Le lieu n'existe pas ou a déjà été supprimé");
-        throw new Error("Le lieu n'existe pas");
-      }
-
-      // Effectuer la suppression
-      const { error: deleteError } = await supabase
+      const { error } = await supabase
         .from('places')
         .delete()
         .eq('id', placeId);
 
-      if (deleteError) {
-        console.error("Erreur Supabase lors de la suppression:", deleteError);
-        throw deleteError;
-      }
+      if (error) throw error;
 
-      console.log("Suppression réussie, mise à jour de l'interface");
-      
       // Mise à jour de l'état local après une suppression réussie
       setPlaces(prevPlaces => prevPlaces.filter(place => place.id !== placeId));
-
+      
       toast({
         title: "Succès",
         description: "La fiche prestataire a été supprimée avec succès",
