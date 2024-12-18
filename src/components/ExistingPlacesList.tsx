@@ -25,11 +25,18 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const [filters, setFilters] = useState({
     noDescription: false,
     noBingPhoto: false,
-    categoryId: '',
+    categoryId: 'all',
   });
 
   const { places, isLoading, fetchPlaces, handleDelete } = usePlacesManagement();
 
+  // Chargement initial des données
+  useEffect(() => {
+    console.log("Chargement initial des prestataires");
+    fetchPlaces('', filters);
+  }, []); // Ce useEffect ne s'exécute qu'au montage
+
+  // Effect pour les changements de recherche et filtres
   useEffect(() => {
     console.log("Effect déclenché - Recherche ou filtres modifiés");
     fetchPlaces(searchQuery, filters);
