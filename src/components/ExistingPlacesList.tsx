@@ -81,18 +81,17 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     console.log("Début de la suppression pour le lieu:", placeId);
     try {
       console.log("Construction de la requête de suppression...");
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from('places')
         .delete()
-        .eq('id', placeId)
-        .select('count');
+        .eq('id', placeId);
 
       if (error) {
         console.error("Erreur Supabase lors de la suppression:", error);
         throw error;
       }
 
-      console.log("Réponse de suppression:", { count });
+      console.log("Suppression réussie, mise à jour de l'état local");
       
       // Mise à jour immédiate de l'état local
       setPlaces(currentPlaces => {
