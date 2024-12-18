@@ -72,7 +72,7 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
           <SelectValue placeholder="Filtrer par catégorie" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Toutes les catégories</SelectItem>
+          <SelectItem value="all">Toutes les catégories</SelectItem>
           {categories.map((category) => (
             <SelectItem key={category.id} value={category.id}>
               {category.name}

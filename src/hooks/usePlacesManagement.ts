@@ -27,7 +27,7 @@ export function usePlacesManagement() {
   const [currentFilters, setCurrentFilters] = useState<PlacesManagementFilters>({
     noDescription: false,
     noBingPhoto: false,
-    categoryId: '',
+    categoryId: 'all',
   });
   const { toast } = useToast();
 
@@ -62,7 +62,7 @@ export function usePlacesManagement() {
         supabaseQuery = supabaseQuery.or('photobing1.is.null,photobing1.eq.');
       }
 
-      if (filters.categoryId) {
+      if (filters.categoryId && filters.categoryId !== 'all') {
         supabaseQuery = supabaseQuery.eq('place_subcategories.subcategories.category_id', filters.categoryId);
       }
 
