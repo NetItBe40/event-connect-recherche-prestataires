@@ -74,6 +74,7 @@ export function usePlacesManagement() {
   const handleDelete = async (placeId: string) => {
     console.log("Début de la suppression pour le lieu:", placeId);
     try {
+      // Mise à jour optimiste de l'interface
       setPlaces(currentPlaces => {
         console.log("Mise à jour optimiste - avant:", currentPlaces.length, "places");
         const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
@@ -81,24 +82,39 @@ export function usePlacesManagement() {
         return updatedPlaces;
       });
 
-      console.log("Envoi de la requête de suppression à Supabase");
-      const { error } = await supabase
+      // D'abord, supprimer les enregistrements dans place_subcategories
+      console.log("Suppression des sous-catégories associées");
+      const { error: subcategoriesError } = await supabase
+        .from('place_subcategories')
+        .delete()
+        .eq('place_id', placeId);
+
+      if (subcategoriesError) {
+        console.error("Erreur lors de la suppression des sous-catégories:", subcategoriesError);
+        throw subcategoriesError;
+      }
+
+      // Ensuite, supprimer la place
+      console.log("Suppression de la place");
+      const { error: placeError } = await supabase
         .from('places')
         .delete()
         .eq('id', placeId);
 
-      if (error) {
-        console.error("Erreur Supabase lors de la suppression:", error);
-        throw error;
+      if (placeError) {
+        console.error("Erreur Supabase lors de la suppression:", placeError);
+        throw placeError;
       }
 
-      console.log("Suppression réussie dans la base de données");
+      console.log("Suppression réussie");
       toast({
         title: "Succès",
         description: "Le prestataire a été supprimé",
       });
     } catch (error) {
       console.error("Erreur complète lors de la suppression:", error);
+      // Restaurer l'état précédent en cas d'erreur
+      fetchPlaces();
       toast({
         variant: "destructive",
         title: "Erreur",
