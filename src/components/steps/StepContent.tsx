@@ -13,6 +13,7 @@ interface StepContentProps {
   isLoading: boolean;
   onSearch: (params: any) => void;
   onSelect: (place: any) => void;
+  onDelete: () => void;
 }
 
 export function StepContent({
@@ -22,6 +23,7 @@ export function StepContent({
   isLoading,
   onSearch,
   onSelect,
+  onDelete,
 }: StepContentProps) {
   console.log("StepContent - Étape actuelle:", currentStep);
 
