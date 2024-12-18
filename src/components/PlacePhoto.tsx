@@ -32,10 +32,12 @@ export function PlacePhoto({ photo, title }: PlacePhotoProps) {
     photoUrl = photo;
   } else if (Array.isArray(photo) && photo.length > 0) {
     // Si c'est un tableau, prendre le premier élément et chercher src ou url
-    photoUrl = photo[0].src || photo[0].url || photo[0].contentUrl || null;
-  } else if (typeof photo === 'object' && photo !== null) {
+    const firstPhoto = photo[0];
+    photoUrl = firstPhoto.src || firstPhoto.url || firstPhoto.contentUrl || null;
+  } else if (typeof photo === 'object' && photo !== null && !Array.isArray(photo)) {
     // Si c'est un objet unique, chercher src, url ou contentUrl
-    photoUrl = photo.src || photo.url || photo.contentUrl || null;
+    const singlePhoto = photo as PhotoObject;
+    photoUrl = singlePhoto.src || singlePhoto.url || singlePhoto.contentUrl || null;
   }
 
   console.log("PlacePhoto - URL extraite:", photoUrl);
