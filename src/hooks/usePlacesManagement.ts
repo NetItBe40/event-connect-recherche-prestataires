@@ -38,17 +38,23 @@ export function usePlacesManagement() {
     setCurrentFilters(filters);
     
     try {
-      let supabaseQuery = supabase
-        .from('places')
-        .select(`
-          *,
-          place_subcategories!inner(
-            subcategory_id,
-            subcategories!inner(
-              category_id
-            )
-          )
-        `);
+      let supabaseQuery = supabase.from('places').select('*');
+
+      // Si une catégorie spécifique est sélectionnée, utiliser une sous-requête
+      if (filters.categoryId && filters.categoryId !== 'all') {
+        supabaseQuery = supabase
+          .from('places')
+          .select('*')
+          .in('id', (sb) =>
+            sb.from('place_subcategories')
+              .select('place_id')
+              .in('subcategory_id', (sb) =>
+                sb.from('subcategories')
+                  .select('id')
+                  .eq('category_id', filters.categoryId)
+              )
+          );
+      }
 
       if (query) {
         supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
@@ -62,10 +68,6 @@ export function usePlacesManagement() {
         supabaseQuery = supabaseQuery.or('photobing1.is.null,photobing1.eq.');
       }
 
-      if (filters.categoryId && filters.categoryId !== 'all') {
-        supabaseQuery = supabaseQuery.eq('place_subcategories.subcategories.category_id', filters.categoryId);
-      }
-
       console.log("Envoi de la requête Supabase");
       const { data, error } = await supabaseQuery;
 
@@ -74,10 +76,8 @@ export function usePlacesManagement() {
         throw error;
       }
       
-      // Dédupliquer les résultats car les jointures peuvent créer des doublons
-      const uniquePlaces = Array.from(new Map(data?.map(item => [item.id, item])).values());
-      console.log("Données reçues:", uniquePlaces.length, "places");
-      setPlaces(uniquePlaces);
+      console.log("Données reçues:", data?.length, "places");
+      setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
       toast({
