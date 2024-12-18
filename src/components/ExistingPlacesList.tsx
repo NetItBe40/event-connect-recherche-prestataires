@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { SearchBar } from './existing-places/SearchBar';
 import { FilterOptions } from './existing-places/FilterOptions';
 import { PlacesList } from './existing-places/PlacesList';
+import { usePlacesManagement } from '@/hooks/usePlacesManagement';
 
 interface Place {
   id: string;
@@ -22,110 +21,23 @@ interface ExistingPlacesListProps {
 }
 
 export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
-  const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState({
     hasDescription: false,
     hasBingPhoto: false,
   });
-  const { toast } = useToast();
 
-  const fetchPlaces = async (query: string = '') => {
-    console.log("Début du fetchPlaces avec query:", query, "et filtres:", filters);
-    setIsLoading(true);
-    try {
-      let supabaseQuery = supabase
-        .from('places')
-        .select('id, title, address, phone, type, rating, description, photobing1, website');
-
-      if (query) {
-        supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
-      }
-
-      if (filters.hasDescription) {
-        supabaseQuery = supabaseQuery
-          .not('description', 'is', null)
-          .not('description', 'eq', '')
-          .not('description', 'eq', '[]');
-      }
-
-      if (filters.hasBingPhoto) {
-        supabaseQuery = supabaseQuery
-          .not('photobing1', 'is', null)
-          .not('photobing1', 'eq', '');
-      }
-
-      console.log("Envoi de la requête Supabase");
-      const { data, error } = await supabaseQuery;
-
-      if (error) {
-        console.error("Erreur Supabase lors du fetch:", error);
-        throw error;
-      }
-      
-      console.log("Données reçues:", data?.length, "places");
-      setPlaces(data || []);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des lieux:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger la liste des prestataires",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (placeId: string) => {
-    console.log("Début de la suppression pour le lieu:", placeId);
-    try {
-      // Mise à jour optimiste de l'état local
-      setPlaces(currentPlaces => {
-        console.log("Mise à jour optimiste - avant:", currentPlaces.length, "places");
-        const updatedPlaces = currentPlaces.filter(place => place.id !== placeId);
-        console.log("Mise à jour optimiste - après:", updatedPlaces.length, "places");
-        return updatedPlaces;
-      });
-
-      console.log("Envoi de la requête de suppression à Supabase");
-      const { error } = await supabase
-        .from('places')
-        .delete()
-        .eq('id', placeId);
-
-      if (error) {
-        console.error("Erreur Supabase lors de la suppression:", error);
-        // En cas d'erreur, on recharge les données pour rétablir l'état correct
-        await fetchPlaces(searchQuery);
-        throw error;
-      }
-
-      console.log("Suppression réussie dans la base de données");
-      toast({
-        title: "Succès",
-        description: "Le prestataire a été supprimé",
-      });
-    } catch (error) {
-      console.error("Erreur complète lors de la suppression:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de supprimer le prestataire",
-      });
-    }
-  };
+  const { places, isLoading, fetchPlaces, handleDelete } = usePlacesManagement();
 
   useEffect(() => {
     console.log("Effect déclenché - Recherche ou filtres modifiés");
-    fetchPlaces(searchQuery);
+    fetchPlaces(searchQuery, filters);
   }, [searchQuery, filters]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Recherche lancée");
-    fetchPlaces(searchQuery);
+    fetchPlaces(searchQuery, filters);
   };
 
   const handleFilterChange = (filterName: keyof typeof filters) => {
