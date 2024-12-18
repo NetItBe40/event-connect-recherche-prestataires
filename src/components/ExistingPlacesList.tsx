@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Search } from "lucide-react";
 import { ExistingPlaceAlert } from './ExistingPlaceAlert';
 import { Checkbox } from "./ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
 interface Place {
   id: string;
@@ -31,6 +32,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     hasDescription: false,
     hasBingPhoto: false,
   });
+  const { toast } = useToast();
 
   const fetchPlaces = async (query: string = '') => {
     setIsLoading(true);
@@ -63,8 +65,39 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger la liste des prestataires",
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (placeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('places')
+        .delete()
+        .eq('id', placeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "La fiche prestataire a été supprimée avec succès",
+      });
+
+      // Rafraîchir la liste après la suppression
+      fetchPlaces(searchQuery);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression",
+      });
     }
   };
 
@@ -139,7 +172,10 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
         ) : (
           places.map((place) => (
             <div key={place.id} onClick={() => onSelect(place)} className="cursor-pointer">
-              <ExistingPlaceAlert place={place} />
+              <ExistingPlaceAlert 
+                place={place} 
+                onDelete={() => handleDelete(place.id)}
+              />
             </div>
           ))
         )}
