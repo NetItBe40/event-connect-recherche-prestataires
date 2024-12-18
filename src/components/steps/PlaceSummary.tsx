@@ -2,6 +2,8 @@ import { Card } from "../ui/card";
 import { PlaceSummaryHeader } from "../place/PlaceSummaryHeader";
 import { PlaceSummaryBasicInfo } from "../place/PlaceSummaryBasicInfo";
 import { PlaceSummaryCategories } from "../place/PlaceSummaryCategories";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "../ui/use-toast";
 
 interface PlaceSummaryProps {
   selectedPlace: {
@@ -43,6 +45,8 @@ interface PlaceSummaryProps {
 }
 
 export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
+  const { toast } = useToast();
+
   if (!selectedPlace) {
     return (
       <Card className="p-6">
@@ -52,6 +56,31 @@ export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
     );
   }
 
+  const handleClearPhoto = async () => {
+    if (!selectedPlace.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('places')
+        .update({ photobing1: null })
+        .eq('id', selectedPlace.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Image supprimée",
+        description: "L'image a été supprimée avec succès",
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'image:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de l'image",
+      });
+    }
+  };
+
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4">Résumé</h2>
@@ -59,6 +88,7 @@ export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
         <PlaceSummaryHeader 
           title={selectedPlace.title}
           photobing1={selectedPlace.photobing1}
+          onClearPhoto={handleClearPhoto}
         />
         
         <PlaceSummaryBasicInfo {...selectedPlace} />
