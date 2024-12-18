@@ -84,13 +84,14 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
       if (error) throw error;
 
+      // Mise à jour immédiate de l'état local en filtrant le lieu supprimé
+      setPlaces(currentPlaces => currentPlaces.filter(place => place.id !== placeId));
+
       toast({
         title: "Succès",
         description: "La fiche prestataire a été supprimée avec succès",
       });
 
-      // Rafraîchir la liste après la suppression
-      fetchPlaces(searchQuery);
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       toast({
