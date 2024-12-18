@@ -65,6 +65,8 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         return;
       }
 
+      console.log("Début de la sauvegarde du lieu:", place);
+
       const reviews = place.reviews ? place.reviews.toString().replace(/\s+avis$/, '') : null;
 
       const { data, error } = await supabase
@@ -95,11 +97,17 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw error;
+      }
 
       if (!data) {
+        console.error('Aucune donnée retournée');
         throw new Error("Aucune donnée retournée après l'insertion");
       }
+
+      console.log("Lieu sauvegardé avec succès:", data);
 
       toast({
         title: "Succès",
@@ -107,11 +115,12 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
       });
 
       if (onSelect) {
-        // On passe le lieu avec son ID Supabase
-        onSelect({
+        const placeWithId: Place = {
           ...place,
           id: data.id
-        });
+        };
+        console.log("Transmission du lieu avec ID:", placeWithId);
+        onSelect(placeWithId);
       }
 
     } catch (error) {
