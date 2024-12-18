@@ -4,6 +4,19 @@ import { PlaceSummaryBasicInfo } from "../place/PlaceSummaryBasicInfo";
 import { PlaceSummaryCategories } from "../place/PlaceSummaryCategories";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "../ui/use-toast";
+import { Button } from "../ui/button";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PlaceSummaryProps {
   selectedPlace: {
@@ -42,9 +55,10 @@ interface PlaceSummaryProps {
     verified?: boolean;
     photos?: string;
   } | null;
+  onDelete?: () => void;
 }
 
-export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
+export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
   const { toast } = useToast();
 
   if (!selectedPlace) {
@@ -55,6 +69,43 @@ export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
       </Card>
     );
   }
+
+  const handleDelete = async () => {
+    try {
+      if (!selectedPlace.id) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de supprimer cette fiche",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('places')
+        .delete()
+        .eq('id', selectedPlace.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "La fiche a été supprimée avec succès",
+      });
+
+      if (onDelete) {
+        onDelete();
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression",
+      });
+    }
+  };
 
   const handleClearPhoto = async () => {
     if (!selectedPlace.id) return;
@@ -83,7 +134,36 @@ export function PlaceSummary({ selectedPlace }: PlaceSummaryProps) {
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Résumé</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Résumé</h2>
+        {selectedPlace.id && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Cela supprimera définitivement la fiche de {selectedPlace.title}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
       <div className="space-y-4">
         <PlaceSummaryHeader 
           title={selectedPlace.title}

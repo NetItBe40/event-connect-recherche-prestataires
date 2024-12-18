@@ -14,6 +14,12 @@ export function StepManager() {
 
   console.log("StepManager rendering", { currentStep, selectedPlace, results, isLoading });
 
+  const handlePlaceDelete = () => {
+    // Reset the selected place and go back to step 0
+    handlePlaceSelect(null);
+    handleStepChange(0);
+  };
+
   return (
     <div className="container py-8 space-y-8">
       <div className="text-center space-y-2">
@@ -40,6 +46,7 @@ export function StepManager() {
             isLoading={isLoading}
             onSearch={handleSearch}
             onSelect={handlePlaceSelect}
+            onDelete={handlePlaceDelete}
           />
         </div>
 
@@ -63,7 +70,10 @@ export function StepManager() {
             </Button>
           </div>
           
-          <PlaceSummary selectedPlace={selectedPlace} />
+          <PlaceSummary 
+            selectedPlace={selectedPlace} 
+            onDelete={handlePlaceDelete}
+          />
         </div>
       </div>
     </div>

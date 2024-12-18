@@ -6,9 +6,20 @@ import { PlaceDetails } from "./place/PlaceDetails";
 import { useEffect, useState } from "react";
 import { useSupabaseSearch } from "@/hooks/useSupabaseSearch";
 import { Badge } from "./ui/badge";
-import { AlertCircle, Eye } from "lucide-react";
+import { AlertCircle, Eye, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { PlaceDetailsDialog } from "./PlaceDetailsDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Place {
   id?: string;
@@ -38,9 +49,10 @@ interface Place {
 interface ResultCardProps {
   place: Place;
   onSelect?: (place: Place) => void;
+  onDelete?: () => void;
 }
 
-export function ResultCard({ place, onSelect }: ResultCardProps) {
+export function ResultCard({ place, onSelect, onDelete }: ResultCardProps) {
   const { toast } = useToast();
   const { checkExistingPlace } = useSupabaseSearch();
   const [existingPlace, setExistingPlace] = useState<Place | null>(null);
@@ -53,6 +65,43 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
     };
     checkPlace();
   }, [place.title]);
+
+  const handleDelete = async () => {
+    try {
+      if (!place.id) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de supprimer cette fiche",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('places')
+        .delete()
+        .eq('id', place.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "La fiche a été supprimée avec succès",
+      });
+
+      if (onDelete) {
+        onDelete();
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression",
+      });
+    }
+  };
 
   const handleSelect = async () => {
     try {
@@ -146,6 +195,33 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
             <AlertCircle className="h-4 w-4" />
             Fiche existante
           </Badge>
+        )}
+        {place.id && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="ml-2"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Cela supprimera définitivement la fiche de {place.title}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </PlaceHeader>
       <PlaceDetails place={place} />
