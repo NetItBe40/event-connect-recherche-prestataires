@@ -89,7 +89,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       return;
     }
 
-    await fetchPlaces(searchQuery);
+    setPlaces(places.filter(place => place.id !== placeId));
     
     toast({
       title: "Succès",
