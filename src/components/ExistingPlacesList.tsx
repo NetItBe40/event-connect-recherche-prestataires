@@ -61,7 +61,6 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
       const { data, error } = await supabaseQuery;
 
       if (error) throw error;
-      console.log("Résultats de la requête:", data);
       setPlaces(data || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des lieux:', error);
@@ -76,34 +75,26 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   };
 
   const handleDelete = async (placeId: string) => {
-    try {
-      console.log("Suppression du lieu:", placeId);
-      
-      const { error } = await supabase
-        .from('places')
-        .delete()
-        .eq('id', placeId);
+    const { error } = await supabase
+      .from('places')
+      .delete()
+      .eq('id', placeId);
 
-      if (error) throw error;
-
-      // Mise à jour de l'état local après une suppression réussie
-      setPlaces(prevPlaces => prevPlaces.filter(place => place.id !== placeId));
-      
-      toast({
-        title: "Succès",
-        description: "La fiche prestataire a été supprimée avec succès",
-      });
-
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
+    if (error) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression",
+        description: "Impossible de supprimer le prestataire",
       });
-      // Rafraîchir la liste en cas d'erreur
-      await fetchPlaces(searchQuery);
+      return;
     }
+
+    await fetchPlaces(searchQuery);
+    
+    toast({
+      title: "Succès",
+      description: "Le prestataire a été supprimé",
+    });
   };
 
   useEffect(() => {
