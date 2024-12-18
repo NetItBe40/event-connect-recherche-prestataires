@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "./ui/card";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Search } from "lucide-react";
-import { ExistingPlaceAlert } from './ExistingPlaceAlert';
-import { Checkbox } from "./ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { SearchBar } from './existing-places/SearchBar';
+import { FilterOptions } from './existing-places/FilterOptions';
+import { PlacesList } from './existing-places/PlacesList';
 
 interface Place {
   id: string;
@@ -115,67 +112,24 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Rechercher un prestataire existant..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Button type="submit" disabled={isLoading}>
-            <Search className="h-4 w-4 mr-2" />
-            Rechercher
-          </Button>
-        </div>
-        
-        <div className="flex gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="hasDescription"
-              checked={filters.hasDescription}
-              onCheckedChange={() => handleFilterChange('hasDescription')}
-            />
-            <label
-              htmlFor="hasDescription"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Avec description
-            </label>
-          </div>
+      <SearchBar 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={handleSearch}
+        isLoading={isLoading}
+      />
+      
+      <FilterOptions 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+      />
 
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="hasBingPhoto"
-              checked={filters.hasBingPhoto}
-              onCheckedChange={() => handleFilterChange('hasBingPhoto')}
-            />
-            <label
-              htmlFor="hasBingPhoto"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Avec photo Bing
-            </label>
-          </div>
-        </div>
-      </form>
-
-      <div className="space-y-4">
-        {isLoading ? (
-          <Card className="p-4">Chargement...</Card>
-        ) : places.length === 0 ? (
-          <Card className="p-4">Aucun prestataire trouvé</Card>
-        ) : (
-          places.map((place) => (
-            <div key={place.id} onClick={() => onSelect(place)} className="cursor-pointer">
-              <ExistingPlaceAlert 
-                place={place} 
-                onDelete={() => handleDelete(place.id)}
-              />
-            </div>
-          ))
-        )}
-      </div>
+      <PlacesList 
+        places={places}
+        isLoading={isLoading}
+        onSelect={onSelect}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
