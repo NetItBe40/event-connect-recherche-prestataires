@@ -131,10 +131,19 @@ export function useStepManagerActions() {
     setCurrentStep(prev => Math.max(prev - 1, 0));
   }, [setCurrentStep]);
 
+  const handleStepChange = useCallback((step: number) => {
+    setCurrentStep(step);
+    toast({
+      title: "Navigation",
+      description: "Retour à l'étape précédente",
+    });
+  }, [setCurrentStep, toast]);
+
   return {
     handleSearch,
     handlePlaceSelect,
     handleNextStep,
     handlePreviousStep,
+    handleStepChange,
   };
 }

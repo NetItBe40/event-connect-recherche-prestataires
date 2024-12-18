@@ -10,7 +10,7 @@ import { useStepManagerActions } from "@/hooks/useStepManagerActions";
 
 export function StepManager() {
   const { currentStep, selectedPlace, results, isLoading } = useStepManagerState();
-  const { handleSearch, handlePlaceSelect, handleNextStep, handlePreviousStep } = useStepManagerActions();
+  const { handleSearch, handlePlaceSelect, handleNextStep, handlePreviousStep, handleStepChange } = useStepManagerActions();
 
   console.log("StepManager rendering", { currentStep, selectedPlace, results, isLoading });
 
@@ -25,7 +25,11 @@ export function StepManager() {
         </p>
       </div>
 
-      <StepProgress currentStep={currentStep} />
+      <StepProgress 
+        currentStep={currentStep} 
+        onStepClick={handleStepChange}
+        selectedPlace={selectedPlace}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
