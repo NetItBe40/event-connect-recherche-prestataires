@@ -37,7 +37,7 @@ interface Place {
 
 interface ResultCardProps {
   place: Place;
-  onSelect?: () => void;
+  onSelect?: (place: Place) => void;
 }
 
 export function ResultCard({ place, onSelect }: ResultCardProps) {
@@ -67,7 +67,7 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
 
       const reviews = place.reviews ? place.reviews.toString().replace(/\s+avis$/, '') : null;
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('places')
         .insert([
           {
@@ -91,9 +91,15 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
             state: place.state,
             description: place.description
           }
-        ]);
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      if (!data) {
+        throw new Error("Aucune donnée retournée après l'insertion");
+      }
 
       toast({
         title: "Succès",
@@ -101,7 +107,11 @@ export function ResultCard({ place, onSelect }: ResultCardProps) {
       });
 
       if (onSelect) {
-        onSelect();
+        // On passe le lieu avec son ID Supabase
+        onSelect({
+          ...place,
+          id: data.id
+        });
       }
 
     } catch (error) {
