@@ -39,18 +39,30 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
         // Pour chaque catégorie, compter le nombre de prestataires
         const categoriesWithCount = await Promise.all(
           categoriesData.map(async (category) => {
+            const subQuery = await supabase
+              .from('subcategories')
+              .select('id')
+              .eq('category_id', category.id);
+
+            if (!subQuery.data) return { ...category, count: 0 };
+
+            const subcategoryIds = subQuery.data.map(sub => sub.id);
+
+            if (subcategoryIds.length === 0) return { ...category, count: 0 };
+
+            const placeIdsQuery = await supabase
+              .from('place_subcategories')
+              .select('place_id')
+              .in('subcategory_id', subcategoryIds);
+
+            if (!placeIdsQuery.data) return { ...category, count: 0 };
+
+            const placeIds = [...new Set(placeIdsQuery.data.map(p => p.place_id))];
+
             const { count } = await supabase
               .from('places')
               .select('*', { count: 'exact', head: true })
-              .in('id', (sb) =>
-                sb.from('place_subcategories')
-                  .select('place_id')
-                  .in('subcategory_id', (sb) =>
-                    sb.from('subcategories')
-                      .select('id')
-                      .eq('category_id', category.id)
-                  )
-              );
+              .in('id', placeIds);
 
             return {
               ...category,
