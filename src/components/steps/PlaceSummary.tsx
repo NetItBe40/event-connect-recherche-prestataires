@@ -61,6 +61,17 @@ interface PlaceSummaryProps {
 export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
   const { toast } = useToast();
 
+  const parseDescription = (description?: string) => {
+    if (!description) return "";
+    try {
+      const parsed = JSON.parse(description);
+      return Array.isArray(parsed) ? parsed[0] : description;
+    } catch (e) {
+      console.error("Erreur lors du parsing de la description:", e);
+      return description;
+    }
+  };
+
   if (!selectedPlace) {
     return (
       <Card className="p-6">
@@ -132,6 +143,8 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
     }
   };
 
+  const parsedDescription = parseDescription(selectedPlace.description);
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -177,10 +190,10 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
           <PlaceSummaryCategories placeId={selectedPlace.id} />
         )}
 
-        {selectedPlace.description && (
+        {parsedDescription && (
           <div>
             <strong>Description :</strong>
-            <p className="mt-1 text-gray-600">{selectedPlace.description}</p>
+            <p className="mt-1 text-gray-600 whitespace-pre-line">{parsedDescription}</p>
           </div>
         )}
 
