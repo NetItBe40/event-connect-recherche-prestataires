@@ -26,14 +26,14 @@ interface Place {
 }
 
 export const useSupabaseSearch = () => {
-  const checkExistingPlace = async (query: string): Promise<Place | null> => {
+  const checkExistingPlace = async (placeId: string): Promise<Place | null> => {
     try {
-      console.log("Recherche d'un lieu existant avec le place_id:", query);
+      console.log("Recherche d'un lieu existant avec le place_id:", placeId);
       
       const { data, error } = await supabase
         .from('places')
         .select('*')
-        .eq('place_id', query)
+        .eq('place_id', placeId)
         .maybeSingle();
 
       if (error) {
