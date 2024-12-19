@@ -27,9 +27,14 @@ Deno.serve(async (req) => {
       secret_name: 'BING_API_KEY',
     })
 
-    if (secretError || !secretData) {
+    if (secretError) {
       console.error('Error getting Bing API key:', secretError)
-      throw new Error('Failed to retrieve Bing API key')
+      throw new Error('Failed to retrieve Bing API key from vault')
+    }
+
+    if (!secretData) {
+      console.error('No Bing API key found in vault')
+      throw new Error('Bing API key not found in vault')
     }
 
     console.log('Successfully retrieved Bing API key')
