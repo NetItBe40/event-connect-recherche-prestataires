@@ -3,6 +3,7 @@ import { ResultsList } from "../ResultsList";
 import { BingImageStep } from "./BingImageStep";
 import { ChatGPTStep } from "./ChatGPTStep";
 import { CategoryStep } from "./CategoryStep";
+import { EnrichmentStep } from "../enrichment/EnrichmentStep";
 import { ExistingPlacesList } from "../ExistingPlacesList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -80,6 +81,29 @@ export function StepContent({
     case 3:
       return (
         <CategoryStep placeId={placeIdentifier} />
+      );
+    case 4:
+      return (
+        <EnrichmentStep 
+          placeId={placeIdentifier}
+          initialData={{
+            website: selectedPlace?.website,
+            phone: selectedPlace?.phone,
+            type: selectedPlace?.type,
+            openingHours: selectedPlace?.opening_hours,
+            facebook: selectedPlace?.facebook,
+            instagram: selectedPlace?.instagram,
+            tiktok: selectedPlace?.tiktok,
+            snapchat: selectedPlace?.snapchat,
+            twitter: selectedPlace?.twitter,
+            linkedin: selectedPlace?.linkedin,
+            github: selectedPlace?.github,
+            youtube: selectedPlace?.youtube,
+            pinterest: selectedPlace?.pinterest,
+            email_1: selectedPlace?.email_1,
+            email_2: selectedPlace?.email_2,
+          }}
+        />
       );
     default:
       return null;
