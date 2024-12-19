@@ -6,7 +6,7 @@ const BING_ENDPOINT = 'https://api.bing.microsoft.com/v7.0/images/search'
 Deno.serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
@@ -28,33 +28,46 @@ Deno.serve(async (req) => {
     const { data: apiKeyData, error: apiKeyError } = await supabaseClient
       .from('apikeys')
       .select('apikey')
-      .eq('provider', 'bing')
+      .eq('provider', 'bingkey1')  // Updated to use bingkey1
       .single()
 
     let bingApiKey = ''
 
     if (apiKeyError || !apiKeyData) {
-      console.log('No API key found in apikeys table, falling back to vault')
-      // If not found in apikeys table, try to get it from the vault
-      const { data: secretData, error: secretError } = await supabaseClient.rpc('get_secret', {
-        secret_name: 'BING_API_KEY',
-      })
+      console.log('No API key found in apikeys table for bingkey1, trying bingkey2')
+      // Try bingkey2 if bingkey1 fails
+      const { data: apiKey2Data, error: apiKey2Error } = await supabaseClient
+        .from('apikeys')
+        .select('apikey')
+        .eq('provider', 'bingkey2')
+        .single()
 
-      if (secretError) {
-        console.error('Error getting Bing API key:', secretError)
-        throw new Error('Failed to retrieve Bing API key')
+      if (apiKey2Error || !apiKey2Data) {
+        console.log('No API keys found in apikeys table, falling back to vault')
+        // If not found in apikeys table, try to get it from the vault
+        const { data: secretData, error: secretError } = await supabaseClient.rpc('get_secret', {
+          secret_name: 'BING_API_KEY',
+        })
+
+        if (secretError) {
+          console.error('Error getting Bing API key:', secretError)
+          throw new Error('Failed to retrieve Bing API key')
+        }
+
+        if (!secretData || !secretData.trim()) {
+          console.error('No valid Bing API key found in vault')
+          throw new Error('No valid Bing API key found')
+        }
+
+        bingApiKey = secretData
+        console.log('Successfully retrieved Bing API key from vault')
+      } else {
+        bingApiKey = apiKey2Data.apikey
+        console.log('Successfully retrieved Bing API key from bingkey2')
       }
-
-      if (!secretData || !secretData.trim()) {
-        console.error('No valid Bing API key found in vault')
-        throw new Error('No valid Bing API key found')
-      }
-
-      bingApiKey = secretData
-      console.log('Successfully retrieved Bing API key from vault')
     } else {
       bingApiKey = apiKeyData.apikey
-      console.log('Successfully retrieved Bing API key from apikeys table')
+      console.log('Successfully retrieved Bing API key from bingkey1')
     }
 
     const { query, website, count = 5 } = await req.json()
@@ -72,10 +85,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Simplification de la construction de la requête
     let searchQuery = query
     if (website) {
-      // On ajoute simplement le nom du site à la recherche sans utiliser site:
       searchQuery = `${query} "${website}"`
       console.log('Search query with website:', searchQuery)
     }
