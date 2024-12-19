@@ -12,6 +12,7 @@ interface ImageResult {
 export function useBingImageSearch(title: string, address: string, placeId?: string) {
   const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { toast } = useToast();
 
   const searchImages = async () => {
@@ -42,15 +43,16 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       }
       
       // Construire une requête optimisée
-      let searchQuery = title;
-      if (type) searchQuery += ` ${type}`;
-      if (city) searchQuery += ` ${city}`;
+      let optimizedQuery = title;
+      if (type) optimizedQuery += ` ${type}`;
+      if (city) optimizedQuery += ` ${city}`;
       
-      console.log("useBingImageSearch - Requête de recherche optimisée:", searchQuery);
+      setSearchQuery(optimizedQuery);
+      console.log("useBingImageSearch - Requête de recherche optimisée:", optimizedQuery);
       
       const response = await supabase.functions.invoke('search-images', {
         body: { 
-          query: searchQuery,
+          query: optimizedQuery,
           website: website,
           count: 10
         },
@@ -84,5 +86,5 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
     }
   };
 
-  return { photos, isLoading, searchImages };
+  return { photos, isLoading, searchImages, searchQuery };
 }
