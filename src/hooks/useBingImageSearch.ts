@@ -15,22 +15,32 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { toast } = useToast();
 
+  const cleanText = (text: string) => {
+    // Supprimer les répétitions du nom dans l'adresse
+    return text.replace(new RegExp(`^${title},\\s*`), '');
+  };
+
+  const extractCity = (address: string): string => {
+    const cityMatch = address.match(/\d{5}\s+([^,]+)$/);
+    return cityMatch ? cityMatch[1].trim() : '';
+  };
+
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      // Récupérer les informations du lieu depuis la base de données
+      console.log("=== Début de la recherche d'images ===");
+      console.log("Données initiales:", { title, address, placeId });
+
+      // Nettoyer l'adresse
+      const cleanedAddress = cleanText(address);
+      console.log("Adresse nettoyée:", cleanedAddress);
+
       let website = '';
       let type = '';
       let city = '';
       
-      console.log("useBingImageSearch - Début de la recherche avec:", {
-        title,
-        address,
-        placeId
-      });
-
       if (placeId) {
-        console.log("useBingImageSearch - Recherche des informations pour l'ID:", placeId);
+        console.log("Récupération des informations depuis la base de données pour l'ID:", placeId);
         const { data: placeData, error } = await supabase
           .from('places')
           .select('website, type, city')
@@ -42,42 +52,41 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
           throw error;
         }
 
-        console.log("useBingImageSearch - Données récupérées de la base:", placeData);
-        
+        console.log("Données récupérées de la base:", placeData);
         website = placeData?.website || '';
         type = placeData?.type || '';
         city = placeData?.city || '';
       }
+
+      // Extraire la ville si non définie
+      if (!city) {
+        city = extractCity(cleanedAddress);
+        console.log("Ville extraite de l'adresse:", city);
+      }
+
+      // Construction de la requête optimisée
+      const queryParts = [title];
       
-      // Extraire uniquement la ville de l'adresse si elle n'est pas déjà définie
-      if (!city && address) {
-        const cityMatch = address.match(/\d{5}\s+([^,]+)$/);
-        if (cityMatch) {
-          city = cityMatch[1].trim();
-        }
-      }
-
-      // Construire une requête optimisée en évitant les répétitions
-      let optimizedQuery = title;
       if (type && !title.toLowerCase().includes(type.toLowerCase())) {
-        optimizedQuery += ` ${type}`;
+        queryParts.push(type);
       }
-      if (city && !optimizedQuery.toLowerCase().includes(city.toLowerCase())) {
-        optimizedQuery += ` ${city}`;
+      
+      if (city && !queryParts.join(' ').toLowerCase().includes(city.toLowerCase())) {
+        queryParts.push(city);
       }
 
-      console.log("useBingImageSearch - Construction de la requête:", {
-        baseTitle: title,
-        addedType: type,
-        addedCity: city,
+      const optimizedQuery = queryParts.join(' ');
+      console.log("Construction de la requête:", {
+        queryParts,
         finalQuery: optimizedQuery
       });
 
       setSearchQuery(optimizedQuery);
       
-      console.log("useBingImageSearch - Appel de la fonction search-images avec:", {
+      console.log("Appel de la fonction search-images avec:", {
         query: optimizedQuery,
-        website
+        website,
+        count: 10
       });
 
       const response = await supabase.functions.invoke('search-images', {
@@ -108,7 +117,6 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         .slice(0, 6);
 
       console.log("Photos triées et filtrées:", sortedPhotos);
-
       setPhotos(sortedPhotos);
 
       toast({
