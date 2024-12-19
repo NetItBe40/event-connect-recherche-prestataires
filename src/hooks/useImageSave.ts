@@ -5,32 +5,39 @@ import { toast } from "sonner";
 export function useImageSave() {
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveImage = async (placeId: string, selectedImage: string) => {
-    if (!selectedImage || !placeId) {
+  const saveImage = async (supabaseId: string, selectedImage: string, googlePlaceId?: string) => {
+    if (!selectedImage) {
       toast.error("Veuillez sélectionner une image");
       return;
     }
 
     setIsSaving(true);
     try {
-      // First, find the place by its Google Place ID
-      const { data: place, error: fetchError } = await supabase
-        .from("places")
-        .select("id")
-        .eq("place_id", placeId)
-        .maybeSingle();
+      let finalId = supabaseId;
 
-      if (fetchError) throw fetchError;
+      // If we have a Google Place ID, we need to find the corresponding Supabase ID
+      if (googlePlaceId && !supabaseId) {
+        console.log("Recherche du lieu avec le Google Place ID:", googlePlaceId);
+        const { data: place, error: fetchError } = await supabase
+          .from("places")
+          .select("id")
+          .eq("place_id", googlePlaceId)
+          .maybeSingle();
 
-      if (!place) {
-        throw new Error("Place not found");
+        if (fetchError) throw fetchError;
+
+        if (!place) {
+          throw new Error("Lieu non trouvé");
+        }
+
+        finalId = place.id;
       }
 
-      // Then update using the Supabase UUID
+      console.log("Mise à jour de l'image pour le lieu:", finalId);
       const { error: updateError } = await supabase
         .from("places")
         .update({ photobing1: selectedImage })
-        .eq("id", place.id);
+        .eq("id", finalId);
 
       if (updateError) throw updateError;
 

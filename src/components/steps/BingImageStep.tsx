@@ -35,9 +35,21 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
   };
 
   const handleSaveImage = async () => {
-    if (placeId && selectedImage) {
-      await saveImage(placeId, selectedImage);
+    if (!selectedImage) {
+      toast.error("Veuillez sélectionner une image");
+      return;
     }
+
+    // Get the correct ID from the parent component
+    const supabaseId = placeId?.includes('ChIJ') ? null : placeId;
+    const googlePlaceId = placeId?.includes('ChIJ') ? placeId : null;
+
+    if (!supabaseId && !googlePlaceId) {
+      toast.error("ID du lieu invalide");
+      return;
+    }
+
+    await saveImage(supabaseId || '', selectedImage, googlePlaceId || '');
   };
 
   return (
