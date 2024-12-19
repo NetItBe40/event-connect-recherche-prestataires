@@ -24,7 +24,7 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
     return cityMatch ? cityMatch[1].trim() : '';
   };
 
-  const searchImages = async () => {
+  const searchImages = async (customQuery?: string) => {
     const now = Date.now();
     const timeSinceLastSearch = now - lastSearchTime;
     if (timeSinceLastSearch < 1500) {
@@ -70,17 +70,21 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         city = extractCity(cleanedAddress);
       }
 
-      const queryParts = [title];
-      
-      if (type && !title.toLowerCase().includes(type.toLowerCase())) {
-        queryParts.push(type);
-      }
-      
-      if (city && !queryParts.join(' ').toLowerCase().includes(city.toLowerCase())) {
-        queryParts.push(city);
-      }
+      let optimizedQuery = customQuery;
+      if (!optimizedQuery) {
+        const queryParts = [title];
+        
+        if (type && !title.toLowerCase().includes(type.toLowerCase())) {
+          queryParts.push(type);
+        }
+        
+        if (city && !queryParts.join(' ').toLowerCase().includes(city.toLowerCase())) {
+          queryParts.push(city);
+        }
 
-      const optimizedQuery = queryParts.join(' ');
+        optimizedQuery = queryParts.join(' ');
+      }
+      
       setSearchQuery(optimizedQuery);
       
       const response = await supabase.functions.invoke('search-images', {
