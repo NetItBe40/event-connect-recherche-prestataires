@@ -68,6 +68,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
     try {
       console.log("Début du fetchCategories pour le lieu:", placeId);
       
+      // 1. Récupérer toutes les catégories et sous-catégories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('id, name');
@@ -90,7 +91,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         })
       );
 
-      // Get the Supabase UUID for the place if this is a Google Place ID
+      // 2. Obtenir l'ID Supabase si c'est un ID Google
       let finalPlaceId = placeId;
       if (placeId.startsWith('ChIJ')) {
         console.log("Conversion de l'ID Google en ID Supabase");
@@ -111,26 +112,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         }
       }
 
-      // Récupération des sous-catégories existantes
-      console.log("Récupération des sous-catégories existantes pour le lieu:", finalPlaceId);
-      const { data: existingSubcategories, error: existingError } = await supabase
-        .from('place_subcategories')
-        .select('subcategory_id')
-        .eq('place_id', finalPlaceId);
-
-      if (existingError) {
-        console.error("Erreur lors de la récupération des sous-catégories existantes:", existingError);
-        throw existingError;
-      }
-
-      console.log("Sous-catégories existantes trouvées:", existingSubcategories);
-      
-      // Mise à jour des sous-catégories sélectionnées
-      const existingIds = existingSubcategories?.map(item => item.subcategory_id) || [];
-      console.log("IDs des sous-catégories existantes:", existingIds);
-      setSelectedSubcategories(existingIds);
-
-      // Récupération des données du lieu pour l'analyse AI
+      // 3. Récupérer les données du lieu pour l'analyse AI
       console.log("Récupération des données du lieu pour l'analyse AI");
       const { data: placeData, error: placeError } = await supabase
         .from('places')
@@ -143,6 +125,20 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         throw placeError;
       }
 
+      // 4. Récupérer les sous-catégories existantes
+      console.log("Récupération des sous-catégories existantes pour le lieu:", finalPlaceId);
+      const { data: existingSubcategories, error: existingError } = await supabase
+        .from('place_subcategories')
+        .select('subcategory_id')
+        .eq('place_id', finalPlaceId);
+
+      if (existingError) {
+        console.error("Erreur lors de la récupération des sous-catégories existantes:", existingError);
+        throw existingError;
+      }
+
+      // 5. Analyser avec l'AI et préparer les catégories avec suggestions
+      let finalCategories = categoriesWithSubs;
       if (placeData?.description || placeData?.type) {
         console.log("Analyse AI des catégories avec description:", placeData.description);
         const suggestedCategories = await analyzePlaceWithAI(
@@ -153,19 +149,23 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
 
         console.log("Catégories suggérées par l'AI:", suggestedCategories);
 
-        const categoriesWithSuggestions = categoriesWithSubs.map(category => ({
+        finalCategories = categoriesWithSubs.map(category => ({
           ...category,
           subcategories: category.subcategories.map(sub => ({
             ...sub,
             suggested: suggestedCategories.includes(sub.id)
           }))
         }));
-
-        setCategories(categoriesWithSuggestions);
       } else {
         console.log("Pas de description ou de type pour l'analyse AI");
-        setCategories(categoriesWithSubs);
       }
+
+      // 6. Mettre à jour l'état
+      console.log("Mise à jour des états");
+      setCategories(finalCategories);
+      const existingIds = existingSubcategories?.map(item => item.subcategory_id) || [];
+      console.log("IDs des sous-catégories existantes:", existingIds);
+      setSelectedSubcategories(existingIds);
 
     } catch (error: any) {
       console.error('Erreur lors du chargement des catégories:', error);
