@@ -60,15 +60,15 @@ export function ResultCard({ place, onSelect, onDelete }: ResultCardProps) {
 
   useEffect(() => {
     const checkPlace = async () => {
-      const existing = await checkExistingPlace(place.title);
+      const existing = await checkExistingPlace(place.placeId || '');
       setExistingPlace(existing);
     };
     checkPlace();
-  }, [place.title]);
+  }, [place.placeId]);
 
   const handleDelete = async () => {
     try {
-      if (!place.id) {
+      if (!place.placeId) {
         toast({
           variant: "destructive",
           title: "Erreur",
@@ -77,12 +77,17 @@ export function ResultCard({ place, onSelect, onDelete }: ResultCardProps) {
         return;
       }
 
+      console.log("Tentative de suppression du lieu avec place_id:", place.placeId);
+
       const { error } = await supabase
         .from('places')
         .delete()
-        .eq('id', place.id);
+        .eq('place_id', place.placeId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur lors de la suppression:', error);
+        throw error;
+      }
 
       toast({
         title: "Succès",
@@ -144,7 +149,7 @@ export function ResultCard({ place, onSelect, onDelete }: ResultCardProps) {
           }
         ])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Erreur Supabase:', error);
@@ -196,7 +201,7 @@ export function ResultCard({ place, onSelect, onDelete }: ResultCardProps) {
             Fiche existante
           </Badge>
         )}
-        {place.id && (
+        {place.placeId && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
