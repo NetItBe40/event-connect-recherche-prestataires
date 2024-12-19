@@ -25,6 +25,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
   const [filters, setFilters] = useState({
     noDescription: false,
     noBingPhoto: false,
+    noCategory: false,
     categoryId: 'all',
   });
 
@@ -48,7 +49,7 @@ export function ExistingPlacesList({ onSelect }: ExistingPlacesListProps) {
     fetchPlaces(searchQuery, filters);
   };
 
-  const handleFilterChange = (filterName: 'noDescription' | 'noBingPhoto') => {
+  const handleFilterChange = (filterName: 'noDescription' | 'noBingPhoto' | 'noCategory') => {
     console.log("Changement de filtre:", filterName);
     setFilters(prev => ({
       ...prev,

@@ -14,9 +14,10 @@ interface FilterOptionsProps {
   filters: {
     noDescription: boolean;
     noBingPhoto: boolean;
+    noCategory: boolean;
     categoryId?: string;
   };
-  onFilterChange: (filterName: 'noDescription' | 'noBingPhoto') => void;
+  onFilterChange: (filterName: 'noDescription' | 'noBingPhoto' | 'noCategory') => void;
   onCategoryChange: (categoryId: string) => void;
 }
 
@@ -76,7 +77,7 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
           })
         );
 
-        // Compter le nombre total de prestataires pour "Toutes les catégories"
+        // Compter le nombre total de prestataires
         const { count: totalCount } = await supabase
           .from('places')
           .select('*', { count: 'exact', head: true });
@@ -96,7 +97,7 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
   }, []);
 
   return (
-    <div className="flex gap-4 items-center">
+    <div className="flex gap-4 items-center flex-wrap">
       <div className="flex items-center space-x-2">
         <Checkbox 
           id="noDescription"
@@ -122,6 +123,20 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           Sans photo Bing
+        </label>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="noCategory"
+          checked={filters.noCategory}
+          onCheckedChange={() => onFilterChange('noCategory')}
+        />
+        <label
+          htmlFor="noCategory"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Sans catégorie
         </label>
       </div>
 

@@ -17,6 +17,7 @@ interface Place {
 interface PlacesManagementFilters {
   noDescription: boolean;
   noBingPhoto: boolean;
+  noCategory: boolean;
   categoryId?: string;
 }
 
@@ -27,6 +28,7 @@ export function usePlacesManagement() {
   const [currentFilters, setCurrentFilters] = useState<PlacesManagementFilters>({
     noDescription: false,
     noBingPhoto: false,
+    noCategory: false,
     categoryId: 'all',
   });
   const { toast } = useToast();
@@ -65,6 +67,18 @@ export function usePlacesManagement() {
             setIsLoading(false);
             return;
           }
+        }
+      }
+
+      // Filtre pour les places sans catégorie
+      if (filters.noCategory) {
+        const { data: placesWithCategories } = await supabase
+          .from('place_subcategories')
+          .select('place_id');
+
+        if (placesWithCategories && placesWithCategories.length > 0) {
+          const placeIdsWithCategories = placesWithCategories.map(p => p.place_id);
+          supabaseQuery = supabaseQuery.not('id', 'in', `(${placeIdsWithCategories.join(',')})`);
         }
       }
 
