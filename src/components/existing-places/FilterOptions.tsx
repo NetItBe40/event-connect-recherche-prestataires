@@ -39,26 +39,31 @@ export function FilterOptions({ filters, onFilterChange, onCategoryChange }: Fil
         // Pour chaque catégorie, compter le nombre de prestataires
         const categoriesWithCount = await Promise.all(
           categoriesData.map(async (category) => {
-            const subQuery = await supabase
+            // Récupérer les IDs des sous-catégories
+            const { data: subcategoriesData } = await supabase
               .from('subcategories')
               .select('id')
               .eq('category_id', category.id);
 
-            if (!subQuery.data) return { ...category, count: 0 };
+            if (!subcategoriesData || subcategoriesData.length === 0) {
+              return { ...category, count: 0 };
+            }
 
-            const subcategoryIds = subQuery.data.map(sub => sub.id);
+            const subcategoryIds = subcategoriesData.map(sub => sub.id);
 
-            if (subcategoryIds.length === 0) return { ...category, count: 0 };
-
-            const placeIdsQuery = await supabase
+            // Récupérer les IDs des places pour ces sous-catégories
+            const { data: placeSubcategoriesData } = await supabase
               .from('place_subcategories')
               .select('place_id')
               .in('subcategory_id', subcategoryIds);
 
-            if (!placeIdsQuery.data) return { ...category, count: 0 };
+            if (!placeSubcategoriesData || placeSubcategoriesData.length === 0) {
+              return { ...category, count: 0 };
+            }
 
-            const placeIds = [...new Set(placeIdsQuery.data.map(p => p.place_id))];
+            const placeIds = [...new Set(placeSubcategoriesData.map(p => p.place_id))];
 
+            // Compter le nombre de places uniques
             const { count } = await supabase
               .from('places')
               .select('*', { count: 'exact', head: true })

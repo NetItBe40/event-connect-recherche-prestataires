@@ -43,25 +43,24 @@ export function usePlacesManagement() {
       // Si une catégorie spécifique est sélectionnée
       if (filters.categoryId && filters.categoryId !== 'all') {
         // D'abord, obtenir les IDs des sous-catégories pour la catégorie sélectionnée
-        const { data: subcategories } = await supabase
+        const { data: subcategoriesData } = await supabase
           .from('subcategories')
           .select('id')
           .eq('category_id', filters.categoryId);
 
-        if (subcategories && subcategories.length > 0) {
-          const subcategoryIds = subcategories.map(sub => sub.id);
+        if (subcategoriesData && subcategoriesData.length > 0) {
+          const subcategoryIds = subcategoriesData.map(sub => sub.id);
 
           // Ensuite, obtenir les IDs des places pour ces sous-catégories
-          const { data: placeSubcategories } = await supabase
+          const { data: placeSubcategoriesData } = await supabase
             .from('place_subcategories')
             .select('place_id')
             .in('subcategory_id', subcategoryIds);
 
-          if (placeSubcategories && placeSubcategories.length > 0) {
-            const placeIds = [...new Set(placeSubcategories.map(p => p.place_id))];
+          if (placeSubcategoriesData && placeSubcategoriesData.length > 0) {
+            const placeIds = [...new Set(placeSubcategoriesData.map(p => p.place_id))];
             supabaseQuery = supabaseQuery.in('id', placeIds);
           } else {
-            // Si aucune place n'est trouvée, retourner un tableau vide
             setPlaces([]);
             setIsLoading(false);
             return;
