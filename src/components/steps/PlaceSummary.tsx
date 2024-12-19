@@ -4,19 +4,10 @@ import { PlaceSummaryBasicInfo } from "../place/PlaceSummaryBasicInfo";
 import { PlaceSummaryCategories } from "../place/PlaceSummaryCategories";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "../ui/use-toast";
-import { Button } from "../ui/button";
-import { Trash2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { PlaceDeleteDialog } from "../place/PlaceDeleteDialog";
+import { PlaceSocialMedia } from "../place/PlaceSocialMedia";
+import { PlaceEmails } from "../place/PlaceEmails";
+import { PlaceDescription } from "../place/PlaceDescription";
 
 interface PlaceSummaryProps {
   selectedPlace: {
@@ -61,17 +52,6 @@ interface PlaceSummaryProps {
 export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
   const { toast } = useToast();
 
-  const parseDescription = (description?: string) => {
-    if (!description) return "";
-    try {
-      const parsed = JSON.parse(description);
-      return Array.isArray(parsed) ? parsed[0] : description;
-    } catch (e) {
-      console.error("Erreur lors du parsing de la description:", e);
-      return description;
-    }
-  };
-
   if (!selectedPlace) {
     return (
       <Card className="p-6">
@@ -80,43 +60,6 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
       </Card>
     );
   }
-
-  const handleDelete = async () => {
-    try {
-      if (!selectedPlace.id) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de supprimer cette fiche",
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('places')
-        .delete()
-        .eq('id', selectedPlace.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "La fiche a été supprimée avec succès",
-      });
-
-      if (onDelete) {
-        onDelete();
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression",
-      });
-    }
-  };
 
   const handleClearPhoto = async () => {
     if (!selectedPlace.id) return;
@@ -143,38 +86,15 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
     }
   };
 
-  const parsedDescription = parseDescription(selectedPlace.description);
-
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Résumé</h2>
         {selectedPlace.id && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="sm"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Cette action est irréversible. Cela supprimera définitivement la fiche de {selectedPlace.title}.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Supprimer
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <PlaceDeleteDialog 
+            title={selectedPlace.title}
+            onDelete={onDelete || (() => {})}
+          />
         )}
       </div>
       <div className="space-y-4">
@@ -190,12 +110,7 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
           <PlaceSummaryCategories placeId={selectedPlace.id} />
         )}
 
-        {parsedDescription && (
-          <div>
-            <strong>Description :</strong>
-            <p className="mt-1 text-gray-600 whitespace-pre-line">{parsedDescription}</p>
-          </div>
-        )}
+        <PlaceDescription description={selectedPlace.description} />
 
         {selectedPlace.opening_hours && Object.keys(selectedPlace.opening_hours).length > 0 && (
           <div>
@@ -210,58 +125,8 @@ export function PlaceSummary({ selectedPlace, onDelete }: PlaceSummaryProps) {
           </div>
         )}
 
-        {/* Réseaux sociaux */}
-        {(selectedPlace.facebook || selectedPlace.instagram || selectedPlace.tiktok || 
-          selectedPlace.snapchat || selectedPlace.twitter || selectedPlace.linkedin || 
-          selectedPlace.github || selectedPlace.youtube || selectedPlace.pinterest) && (
-          <div>
-            <strong>Réseaux sociaux :</strong>
-            <div className="mt-1 space-y-1">
-              {selectedPlace.facebook && (
-                <p><strong>Facebook :</strong> {selectedPlace.facebook}</p>
-              )}
-              {selectedPlace.instagram && (
-                <p><strong>Instagram :</strong> {selectedPlace.instagram}</p>
-              )}
-              {selectedPlace.tiktok && (
-                <p><strong>TikTok :</strong> {selectedPlace.tiktok}</p>
-              )}
-              {selectedPlace.snapchat && (
-                <p><strong>Snapchat :</strong> {selectedPlace.snapchat}</p>
-              )}
-              {selectedPlace.twitter && (
-                <p><strong>Twitter :</strong> {selectedPlace.twitter}</p>
-              )}
-              {selectedPlace.linkedin && (
-                <p><strong>LinkedIn :</strong> {selectedPlace.linkedin}</p>
-              )}
-              {selectedPlace.github && (
-                <p><strong>GitHub :</strong> {selectedPlace.github}</p>
-              )}
-              {selectedPlace.youtube && (
-                <p><strong>YouTube :</strong> {selectedPlace.youtube}</p>
-              )}
-              {selectedPlace.pinterest && (
-                <p><strong>Pinterest :</strong> {selectedPlace.pinterest}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Emails */}
-        {(selectedPlace.email_1 || selectedPlace.email_2) && (
-          <div>
-            <strong>Emails :</strong>
-            <div className="mt-1 space-y-1">
-              {selectedPlace.email_1 && (
-                <p><strong>Email 1 :</strong> {selectedPlace.email_1}</p>
-              )}
-              {selectedPlace.email_2 && (
-                <p><strong>Email 2 :</strong> {selectedPlace.email_2}</p>
-              )}
-            </div>
-          </div>
-        )}
+        <PlaceSocialMedia {...selectedPlace} />
+        <PlaceEmails {...selectedPlace} />
       </div>
     </Card>
   );
