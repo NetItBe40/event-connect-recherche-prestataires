@@ -23,6 +23,8 @@ export function useCategorySuggestions(placeId: string) {
 
   const analyzePlaceWithAI = async (description: string, type: string, categories: Category[]) => {
     try {
+      console.log("Début de l'analyse AI avec description:", description);
+      
       const prompt = `
 Analyse le profil du prestataire suivant en fonction de la liste des catégories disponibles. Classe ce prestataire uniquement dans les catégories dont les services ou activités sont clairement et explicitement mentionnés dans la description fournie. Ne fais aucune supposition ou extrapolation.
 
@@ -57,6 +59,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         });
       });
 
+      console.log("Sous-catégories suggérées:", suggestedIds);
       return suggestedIds;
     } catch (error) {
       console.error("Erreur lors de l'analyse AI:", error);
@@ -67,13 +70,17 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
   const fetchCategories = async () => {
     try {
       console.log("Début du fetchCategories pour le lieu:", placeId);
+      setIsLoading(true);
       
       // 1. Récupérer toutes les catégories et sous-catégories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('id, name');
 
-      if (categoriesError) throw categoriesError;
+      if (categoriesError) {
+        console.error("Erreur lors de la récupération des catégories:", categoriesError);
+        throw categoriesError;
+      }
 
       const categoriesWithSubs = await Promise.all(
         categoriesData.map(async (category) => {
@@ -82,7 +89,10 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
             .select('id, name')
             .eq('category_id', category.id);
 
-          if (subError) throw subError;
+          if (subError) {
+            console.error("Erreur lors de la récupération des sous-catégories:", subError);
+            throw subError;
+          }
 
           return {
             ...category,
@@ -112,20 +122,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         }
       }
 
-      // 3. Récupérer les données du lieu pour l'analyse AI
-      console.log("Récupération des données du lieu pour l'analyse AI");
-      const { data: placeData, error: placeError } = await supabase
-        .from('places')
-        .select('description, type')
-        .eq('id', finalPlaceId)
-        .maybeSingle();
-
-      if (placeError) {
-        console.error("Erreur lors de la récupération des données du lieu:", placeError);
-        throw placeError;
-      }
-
-      // 4. Récupérer les sous-catégories existantes
+      // 3. Récupérer les sous-catégories existantes
       console.log("Récupération des sous-catégories existantes pour le lieu:", finalPlaceId);
       const { data: existingSubcategories, error: existingError } = await supabase
         .from('place_subcategories')
@@ -135,6 +132,21 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
       if (existingError) {
         console.error("Erreur lors de la récupération des sous-catégories existantes:", existingError);
         throw existingError;
+      }
+
+      const existingIds = existingSubcategories?.map(item => item.subcategory_id) || [];
+      console.log("IDs des sous-catégories existantes:", existingIds);
+
+      // 4. Récupérer les données du lieu pour l'analyse AI
+      const { data: placeData, error: placeError } = await supabase
+        .from('places')
+        .select('description, type')
+        .eq('id', finalPlaceId)
+        .maybeSingle();
+
+      if (placeError) {
+        console.error("Erreur lors de la récupération des données du lieu:", placeError);
+        throw placeError;
       }
 
       // 5. Analyser avec l'AI et préparer les catégories avec suggestions
@@ -156,15 +168,11 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
             suggested: suggestedCategories.includes(sub.id)
           }))
         }));
-      } else {
-        console.log("Pas de description ou de type pour l'analyse AI");
       }
 
       // 6. Mettre à jour l'état
       console.log("Mise à jour des états");
       setCategories(finalCategories);
-      const existingIds = existingSubcategories?.map(item => item.subcategory_id) || [];
-      console.log("IDs des sous-catégories existantes:", existingIds);
       setSelectedSubcategories(existingIds);
 
     } catch (error: any) {

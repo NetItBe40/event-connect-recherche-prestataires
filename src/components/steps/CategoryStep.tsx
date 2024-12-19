@@ -10,6 +10,8 @@ import { SubcategoryList } from "../category/SubcategoryList";
 import { useCategorySuggestions } from "@/hooks/useCategorySuggestions";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface CategoryStepProps {
   placeId: string;
@@ -20,6 +22,7 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
   const { toast } = useToast();
 
   const handleSubcategoryToggle = (subcategoryId: string) => {
+    console.log("Toggle sous-catégorie:", subcategoryId);
     setSelectedSubcategories(prev => {
       if (prev.includes(subcategoryId)) {
         return prev.filter(id => id !== subcategoryId);
@@ -31,6 +34,8 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
 
   const handleSave = async () => {
     try {
+      console.log("Début de la sauvegarde des catégories");
+      
       // First, get the Supabase UUID if this is a Google Place ID
       let finalPlaceId = placeId;
       if (placeId.startsWith('ChIJ')) {
@@ -53,6 +58,7 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
         finalPlaceId = placeData.id;
       }
 
+      console.log("Suppression des anciennes sous-catégories");
       const { error: deleteError } = await supabase
         .from('place_subcategories')
         .delete()
@@ -61,6 +67,7 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
       if (deleteError) throw deleteError;
 
       if (selectedSubcategories.length > 0) {
+        console.log("Insertion des nouvelles sous-catégories:", selectedSubcategories);
         const { error: insertError } = await supabase
           .from('place_subcategories')
           .insert(
@@ -91,6 +98,17 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
     return <div>Chargement des catégories...</div>;
   }
 
+  if (categories.length === 0) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Aucune catégorie n'a été trouvée. Veuillez contacter l'administrateur.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -117,7 +135,11 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
         ))}
       </Accordion>
 
-      <Button onClick={handleSave} className="w-full">
+      <Button 
+        onClick={handleSave} 
+        className="w-full"
+        disabled={selectedSubcategories.length === 0}
+      >
         Sauvegarder les catégories
       </Button>
     </div>
