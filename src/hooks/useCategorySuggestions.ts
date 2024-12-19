@@ -88,31 +88,63 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
         })
       );
 
+      // Get the Supabase UUID for the place if this is a Google Place ID
+      let finalPlaceId = placeId;
+      if (placeId.startsWith('ChIJ')) {
+        const { data: placeData, error: placeError } = await supabase
+          .from('places')
+          .select('id')
+          .eq('place_id', placeId)
+          .maybeSingle();
+
+        if (placeError) {
+          console.error('Erreur lors de la récupération du lieu:', placeError);
+          throw placeError;
+        }
+
+        if (placeData) {
+          finalPlaceId = placeData.id;
+        }
+      }
+
       const { data: placeData, error: placeError } = await supabase
         .from('places')
         .select('description, type')
-        .eq('id', placeId)
-        .single();
+        .eq('id', finalPlaceId)
+        .maybeSingle();
 
       if (placeError) throw placeError;
 
-      const suggestedCategories = await analyzePlaceWithAI(
-        placeData.description || "",
-        placeData.type || "",
-        categoriesWithSubs
-      );
+      const { data: existingSubcategories, error: existingError } = await supabase
+        .from('place_subcategories')
+        .select('subcategory_id')
+        .eq('place_id', finalPlaceId);
 
-      const categoriesWithSuggestions = categoriesWithSubs.map(category => ({
-        ...category,
-        subcategories: category.subcategories.map(sub => ({
-          ...sub,
-          suggested: suggestedCategories.includes(sub.id)
-        }))
-      }));
+      if (existingError) throw existingError;
 
-      setCategories(categoriesWithSuggestions);
-      setSelectedSubcategories(suggestedCategories);
-    } catch (error) {
+      setSelectedSubcategories(existingSubcategories?.map(item => item.subcategory_id) || []);
+
+      if (placeData?.description || placeData?.type) {
+        const suggestedCategories = await analyzePlaceWithAI(
+          placeData.description || "",
+          placeData.type || "",
+          categoriesWithSubs
+        );
+
+        const categoriesWithSuggestions = categoriesWithSubs.map(category => ({
+          ...category,
+          subcategories: category.subcategories.map(sub => ({
+            ...sub,
+            suggested: suggestedCategories.includes(sub.id)
+          }))
+        }));
+
+        setCategories(categoriesWithSuggestions);
+      } else {
+        setCategories(categoriesWithSubs);
+      }
+
+    } catch (error: any) {
       console.error('Erreur lors du chargement des catégories:', error);
       toast({
         title: "Erreur",
@@ -124,24 +156,8 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
     }
   };
 
-  const fetchExistingSelections = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('place_subcategories')
-        .select('subcategory_id')
-        .eq('place_id', placeId);
-
-      if (error) throw error;
-
-      setSelectedSubcategories(data.map(item => item.subcategory_id));
-    } catch (error) {
-      console.error('Erreur lors du chargement des sélections existantes:', error);
-    }
-  };
-
   useEffect(() => {
     fetchCategories();
-    fetchExistingSelections();
   }, [placeId]);
 
   return {

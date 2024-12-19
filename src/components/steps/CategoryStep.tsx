@@ -30,23 +30,40 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
 
   const handleSave = async () => {
     try {
+      // First, get the Supabase UUID if this is a Google Place ID
+      let finalPlaceId = placeId;
+      if (placeId.startsWith('ChIJ')) {
+        const { data: placeData, error: placeError } = await supabase
+          .from('places')
+          .select('id')
+          .eq('place_id', placeId)
+          .maybeSingle();
+
+        if (placeError) throw placeError;
+        if (!placeData) throw new Error('Place not found');
+        
+        finalPlaceId = placeData.id;
+      }
+
       const { error: deleteError } = await supabase
         .from('place_subcategories')
         .delete()
-        .eq('place_id', placeId);
+        .eq('place_id', finalPlaceId);
 
       if (deleteError) throw deleteError;
 
-      const { error: insertError } = await supabase
-        .from('place_subcategories')
-        .insert(
-          selectedSubcategories.map(subcategoryId => ({
-            place_id: placeId,
-            subcategory_id: subcategoryId,
-          }))
-        );
+      if (selectedSubcategories.length > 0) {
+        const { error: insertError } = await supabase
+          .from('place_subcategories')
+          .insert(
+            selectedSubcategories.map(subcategoryId => ({
+              place_id: finalPlaceId,
+              subcategory_id: subcategoryId,
+            }))
+          );
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+      }
 
       toast({
         title: "Succès",
