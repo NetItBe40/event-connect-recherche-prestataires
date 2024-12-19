@@ -58,8 +58,17 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        console.error("Erreur de la fonction search-images:", response.error);
+        throw new Error(response.error.message);
+      }
       
+      console.log("Réponse de la fonction search-images:", response);
+
+      if (!response.data?.photos) {
+        throw new Error("Pas de photos dans la réponse");
+      }
+
       const sortedPhotos = response.data.photos
         .sort((a: ImageResult, b: ImageResult) => {
           const aRatio = a.width / a.height;
