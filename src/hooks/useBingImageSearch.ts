@@ -121,6 +121,7 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         description: "Les images ont été récupérées avec succès",
       });
     } catch (error: any) {
+      console.error('Erreur lors de la récupération des données:', error);
       toast.error("Erreur", {
         description: error.message || "Impossible de récupérer les images",
       });
