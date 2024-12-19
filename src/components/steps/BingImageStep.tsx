@@ -25,13 +25,10 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
       description: searchQuery || `${title} ${address}`
     });
     
-    // Lancer la recherche automatiquement avec un petit délai
-    const timer = setTimeout(() => {
-      searchImages();
-    }, 500); // Délai de 500ms pour éviter les requêtes trop rapprochées
-
-    return () => clearTimeout(timer);
-  }, [title, address, placeId, searchQuery, searchImages]);
+    // Lancer la recherche uniquement au montage initial
+    searchImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dépendances vides pour n'exécuter qu'au montage
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImage(imageUrl);
