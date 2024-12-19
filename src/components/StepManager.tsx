@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { StepProgress } from "./StepProgress";
 import { Button } from "./ui/button";
-import { useToast } from "./ui/use-toast";
 import { StepContent } from "./steps/StepContent";
 import { PlaceSummary } from "./steps/PlaceSummary";
-import { supabase } from "@/integrations/supabase/client";
 import { useStepManagerState } from "@/hooks/useStepManagerState";
 import { useStepManagerActions } from "@/hooks/useStepManagerActions";
 
@@ -15,7 +13,6 @@ export function StepManager() {
   console.log("StepManager rendering", { currentStep, selectedPlace, results, isLoading });
 
   const handlePlaceDelete = () => {
-    // Reset the selected place and go back to step 0
     handlePlaceSelect(null);
     handleStepChange(0);
   };
@@ -26,7 +23,7 @@ export function StepManager() {
         <h1 className="text-3xl font-bold">
           Traitement des fiches prestataires
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Enrichissez vos fiches prestataires en 4 étapes simples
         </p>
       </div>
