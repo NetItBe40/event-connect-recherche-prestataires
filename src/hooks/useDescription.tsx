@@ -19,24 +19,13 @@ export function useDescription(placeId: string | undefined, initialDescription?:
     try {
       const formattedDescription = [description.trim()];
       
-      const { data: existingPlace, error: fetchError } = await supabase
-        .from('places')
-        .select('id')
-        .eq('place_id', placeId)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      if (!existingPlace) {
-        throw new Error("Place not found");
-      }
-
+      // Mise à jour directe avec l'ID du lieu
       const { error: updateError } = await supabase
         .from('places')
         .update({ 
           description: JSON.stringify(formattedDescription)
         })
-        .eq('id', existingPlace.id);
+        .eq('id', placeId);
 
       if (updateError) throw updateError;
 
