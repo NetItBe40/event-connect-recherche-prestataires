@@ -35,6 +35,7 @@ export function useImageSave() {
         }
 
         finalId = place.id;
+        console.log("ID Supabase trouvé:", finalId);
       } else {
         // If it's not a Google Place ID, use it directly as Supabase UUID
         finalId = placeId;
@@ -51,9 +52,9 @@ export function useImageSave() {
         throw updateError;
       }
 
-      toast.success("Image sauvegardée");
+      toast.success("Image sauvegardée avec succès");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      console.error("Erreur complète lors de la sauvegarde:", error);
       toast.error("Impossible de sauvegarder l'image");
     } finally {
       setIsSaving(false);
