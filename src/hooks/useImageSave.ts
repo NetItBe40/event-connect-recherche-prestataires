@@ -7,40 +7,35 @@ export function useImageSave() {
 
   const saveImage = async (placeId: string, selectedImage: string) => {
     if (!selectedImage || !placeId) {
-      toast.error("Erreur", {
-        description: "Veuillez sélectionner une image",
-      });
+      toast.error("Veuillez sélectionner une image");
       return;
     }
 
     setIsSaving(true);
     try {
+      const { data: existingPlace, error: fetchError } = await supabase
+        .from("places")
+        .select("id")
+        .eq("place_id", placeId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!existingPlace) {
+        throw new Error("Place not found");
+      }
+
       const { error: updateError } = await supabase
         .from("places")
         .update({ photobing1: selectedImage })
-        .eq("id", placeId);
+        .eq("id", existingPlace.id);
 
       if (updateError) throw updateError;
 
-      const { data: verifyData, error: verifyError } = await supabase
-        .from("places")
-        .select("photobing1")
-        .eq("id", placeId)
-        .maybeSingle();
-
-      if (verifyError) throw verifyError;
-
-      if (!verifyData || verifyData.photobing1 !== selectedImage) {
-        throw new Error("Failed to verify the image update");
-      }
-
-      toast.success("Image sauvegardée", {
-        description: "L'image a été sauvegardée avec succès",
-      });
+      toast.success("Image sauvegardée");
     } catch (error) {
-      toast.error("Erreur", {
-        description: "Impossible de sauvegarder l'image",
-      });
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast.error("Impossible de sauvegarder l'image");
     } finally {
       setIsSaving(false);
     }

@@ -1,106 +1,58 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { DescriptionDebugDialog } from "@/components/description/DescriptionDebugDialog";
+import { toast } from "sonner";
 
-export function useDescription(placeId?: string, initialDescription?: string) {
-  const [description, setDescription] = useState(initialDescription || "");
+export function useDescription(placeId: string | undefined, initialDescription?: string) {
+  const [description, setDescription] = useState<string>(
+    Array.isArray(initialDescription) 
+      ? initialDescription[0] 
+      : initialDescription || ""
+  );
   const [error, setError] = useState<string | null>(null);
-  const [debugDialog, setDebugDialog] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>({});
-  const { toast } = useToast();
 
   const handleSaveDescription = async () => {
     if (!placeId) {
-      setError("ID manquant");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "ID manquant",
-      });
+      setError("ID du lieu manquant");
       return;
     }
 
     try {
-      console.log("Début de la sauvegarde pour le lieu:", placeId);
-      console.log("Description à sauvegarder:", description);
+      const formattedDescription = [description.trim()];
+      
+      const { data: existingPlace, error: fetchError } = await supabase
+        .from('places')
+        .select('id')
+        .eq('place_id', placeId)
+        .maybeSingle();
 
-      // Update the description
-      const { data: updateData, error: updateError } = await supabase
+      if (fetchError) throw fetchError;
+
+      if (!existingPlace) {
+        throw new Error("Place not found");
+      }
+
+      const { error: updateError } = await supabase
         .from('places')
         .update({ 
-          description: description 
+          description: JSON.stringify(formattedDescription)
         })
-        .eq('id', placeId)
-        .select();
+        .eq('id', existingPlace.id);
 
-      if (updateError) {
-        console.error("Erreur lors de la mise à jour:", updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      if (!updateData || updateData.length === 0) {
-        throw new Error("Aucun enregistrement mis à jour");
-      }
-
-      const updatedPlace = updateData[0];
-      console.log("Place mise à jour:", updatedPlace);
-
-      setDebugInfo({
-        step: "Sauvegarde réussie",
-        placeId,
-        descriptionToSave: description,
-        updateResponse: updatedPlace,
-        verificationResult: {
-          data: updatedPlace,
-          currentDescription: updatedPlace.description
-        }
-      });
-
-      toast({
-        title: "Succès",
-        description: "La description a été sauvegardée avec succès",
-      });
-
+      toast.success("Description sauvegardée");
       setError(null);
-      setDebugDialog(true);
-
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
-      
-      const errorMessage = error.message || "Erreur inconnue";
-      setError(`Impossible de sauvegarder la description: ${errorMessage}`);
-      
-      setDebugInfo({
-        step: "Erreur",
-        placeId,
-        descriptionToSave: description,
-        error: errorMessage
-      });
-      
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder la description. Veuillez réessayer.",
-      });
-      
-      setDebugDialog(true);
+      setError(`Impossible de sauvegarder la description: ${error}`);
+      toast.error("Erreur lors de la sauvegarde de la description");
     }
   };
-
-  const DebugDialog = () => (
-    <DescriptionDebugDialog
-      open={debugDialog}
-      onOpenChange={setDebugDialog}
-      debugInfo={debugInfo}
-    />
-  );
 
   return {
     description,
     setDescription,
     error,
     handleSaveDescription,
-    DebugDialog
   };
 }
