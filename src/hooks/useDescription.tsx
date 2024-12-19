@@ -2,46 +2,58 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export function useDescription(placeId: string | undefined, initialDescription?: string) {
-  const [description, setDescription] = useState<string>(
-    Array.isArray(initialDescription) 
-      ? initialDescription[0] 
-      : initialDescription || ""
-  );
+export function useDescription() {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSaveDescription = async () => {
-    if (!placeId) {
-      setError("ID du lieu manquant");
-      return;
-    }
-
+  const handleSaveDescription = async (placeId: string, description: string) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const formattedDescription = [description.trim()];
+      console.log("Tentative de sauvegarde de la description pour:", placeId);
       
-      // Mise à jour directe avec l'ID du lieu
-      const { error: updateError } = await supabase
-        .from('places')
-        .update({ 
-          description: JSON.stringify(formattedDescription)
-        })
-        .eq('id', placeId);
+      let updateQuery;
+      
+      // Si l'ID commence par ChIJ, c'est un Google Place ID
+      if (placeId.startsWith('ChIJ')) {
+        updateQuery = supabase
+          .from('places')
+          .update({ description })
+          .eq('place_id', placeId);
+      } else {
+        // Sinon c'est un UUID Supabase
+        updateQuery = supabase
+          .from('places')
+          .update({ description })
+          .eq('id', placeId);
+      }
+      
+      const { error: updateError } = await updateQuery;
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Erreur lors de la sauvegarde:", updateError);
+        throw updateError;
+      }
 
-      toast.success("Description sauvegardée");
-      setError(null);
-    } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      toast.success("Description sauvegardée avec succès");
+    } catch (error: any) {
+      console.error("Erreur lors de la sauvegarde:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       setError(`Impossible de sauvegarder la description: ${error}`);
-      toast.error("Erreur lors de la sauvegarde de la description");
+      toast.error("Impossible de sauvegarder la description");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
-    description,
-    setDescription,
-    error,
     handleSaveDescription,
+    isLoading,
+    error
   };
 }
