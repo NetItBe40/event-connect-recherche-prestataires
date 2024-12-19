@@ -40,16 +40,12 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
       return;
     }
 
-    // Get the correct ID from the parent component
-    const supabaseId = placeId?.includes('ChIJ') ? null : placeId;
-    const googlePlaceId = placeId?.includes('ChIJ') ? placeId : null;
-
-    if (!supabaseId && !googlePlaceId) {
-      toast.error("ID du lieu invalide");
+    if (!placeId) {
+      toast.error("ID du lieu manquant");
       return;
     }
 
-    await saveImage(supabaseId || '', selectedImage, googlePlaceId || '');
+    await saveImage(placeId, selectedImage);
   };
 
   return (
