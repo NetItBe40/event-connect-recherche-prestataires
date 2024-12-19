@@ -40,7 +40,10 @@ export function usePlacesManagement() {
     setCurrentFilters(filters);
     
     try {
-      let supabaseQuery = supabase.from('places').select('*');
+      let supabaseQuery = supabase
+        .from('places')
+        .select('*')
+        .order('created_at', { ascending: false }); // Ajout du tri chronologique inverse
 
       // Si une catégorie spécifique est sélectionnée
       if (filters.categoryId && filters.categoryId !== 'all') {
