@@ -4,11 +4,14 @@ import { corsHeaders } from '../_shared/cors.ts'
 const BING_ENDPOINT = 'https://api.bing.microsoft.com/v7.0/images/search'
 
 Deno.serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log('Starting search-images function')
+    
     // Get API key from vault
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -29,7 +32,10 @@ Deno.serve(async (req) => {
       throw new Error('Failed to retrieve Bing API key')
     }
 
+    console.log('Successfully retrieved Bing API key')
+
     const { query, website, count = 5 } = await req.json()
+    console.log('Request parameters:', { query, website, count })
 
     if (!query) {
       return new Response(
@@ -43,25 +49,24 @@ Deno.serve(async (req) => {
       )
     }
 
-    let searchQuery = query;
+    let searchQuery = query
     
     // Si un site web est fourni, on l'ajoute à la requête
     if (website) {
       try {
-        const url = new URL(website);
-        const domain = url.hostname;
+        const url = new URL(website)
+        const domain = url.hostname
         // Combine le site avec la requête originale
-        searchQuery = `${query} site:${domain}`;
-        console.log('Recherche combinée:', searchQuery);
+        searchQuery = `${query} site:${domain}`
+        console.log('Combined search query:', searchQuery)
       } catch (error) {
-        console.error('Erreur lors du parsing de l\'URL:', error);
-        // On garde la requête originale si l'URL n'est pas valide
+        console.error('Error parsing website URL:', error)
+        // Keep original query if URL is invalid
       }
     }
 
-    console.log('Recherche d\'images avec la requête:', searchQuery);
-    
     const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(searchQuery)}&count=${count}&safeSearch=Strict`
+    console.log('Making request to Bing API:', searchUrl)
 
     const response = await fetch(searchUrl, {
       headers: {
@@ -69,11 +74,25 @@ Deno.serve(async (req) => {
       },
     })
 
-    const data = await response.json()
-
     if (!response.ok) {
-      console.error('Erreur API Bing:', data)
-      throw new Error('Impossible de récupérer les images depuis Bing')
+      const errorText = await response.text()
+      console.error('Bing API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      throw new Error(`Bing API returned ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('Received response from Bing API:', {
+      totalEstimatedMatches: data.totalEstimatedMatches,
+      resultCount: data.value?.length
+    })
+
+    if (!data.value || !Array.isArray(data.value)) {
+      console.error('Invalid response format from Bing API:', data)
+      throw new Error('Invalid response format from Bing API')
     }
 
     const photos = data.value.map((image: any) => ({
@@ -82,6 +101,8 @@ Deno.serve(async (req) => {
       height: image.height,
       contentSize: image.contentSize,
     }))
+
+    console.log(`Successfully processed ${photos.length} images`)
 
     return new Response(
       JSON.stringify({
@@ -92,10 +113,10 @@ Deno.serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Erreur:', error)
+    console.error('Error in search-images function:', error)
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error.message || 'An unexpected error occurred',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
