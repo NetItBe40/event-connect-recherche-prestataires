@@ -13,22 +13,10 @@ export function useImageSave() {
 
     setIsSaving(true);
     try {
-      const { data: existingPlace, error: fetchError } = await supabase
-        .from("places")
-        .select("id")
-        .eq("place_id", placeId)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      if (!existingPlace) {
-        throw new Error("Place not found");
-      }
-
       const { error: updateError } = await supabase
         .from("places")
         .update({ photobing1: selectedImage })
-        .eq("id", existingPlace.id);
+        .eq("id", placeId);
 
       if (updateError) throw updateError;
 
