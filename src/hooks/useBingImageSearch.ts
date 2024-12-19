@@ -23,6 +23,12 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       let type = '';
       let city = '';
       
+      console.log("useBingImageSearch - Début de la recherche avec:", {
+        title,
+        address,
+        placeId
+      });
+
       if (placeId) {
         console.log("useBingImageSearch - Recherche des informations pour l'ID:", placeId);
         const { data: placeData, error } = await supabase
@@ -35,11 +41,12 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
           console.error("Erreur lors de la récupération des informations:", error);
           throw error;
         }
+
+        console.log("useBingImageSearch - Données récupérées de la base:", placeData);
         
         website = placeData?.website || '';
         type = placeData?.type || '';
         city = placeData?.city || '';
-        console.log("useBingImageSearch - Informations trouvées:", { website, type, city });
       }
       
       // Construire une requête optimisée
@@ -47,9 +54,20 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       if (type) optimizedQuery += ` ${type}`;
       if (city) optimizedQuery += ` ${city}`;
       
+      console.log("useBingImageSearch - Construction de la requête:", {
+        baseTitle: title,
+        addedType: type,
+        addedCity: city,
+        finalQuery: optimizedQuery
+      });
+
       setSearchQuery(optimizedQuery);
-      console.log("useBingImageSearch - Requête de recherche optimisée:", optimizedQuery);
       
+      console.log("useBingImageSearch - Appel de la fonction search-images avec:", {
+        query: optimizedQuery,
+        website
+      });
+
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: optimizedQuery,
@@ -73,9 +91,11 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         .sort((a: ImageResult, b: ImageResult) => {
           const aRatio = a.width / a.height;
           const bRatio = b.width / b.height;
-          return bRatio - aRatio;
+          return Math.abs(1.5 - aRatio) - Math.abs(1.5 - bRatio);
         })
-        .slice(0, 5);
+        .slice(0, 6);
+
+      console.log("Photos triées et filtrées:", sortedPhotos);
 
       setPhotos(sortedPhotos);
 
@@ -84,12 +104,13 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         description: "Les images ont été récupérées avec succès",
       });
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Erreur complète:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de récupérer les images",
       });
+      setPhotos([]);
     } finally {
       setIsLoading(false);
     }
