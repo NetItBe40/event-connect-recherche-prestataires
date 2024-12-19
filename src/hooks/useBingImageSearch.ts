@@ -49,11 +49,23 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         city = placeData?.city || '';
       }
       
-      // Construire une requête optimisée
+      // Extraire uniquement la ville de l'adresse si elle n'est pas déjà définie
+      if (!city && address) {
+        const cityMatch = address.match(/\d{5}\s+([^,]+)$/);
+        if (cityMatch) {
+          city = cityMatch[1].trim();
+        }
+      }
+
+      // Construire une requête optimisée en évitant les répétitions
       let optimizedQuery = title;
-      if (type) optimizedQuery += ` ${type}`;
-      if (city) optimizedQuery += ` ${city}`;
-      
+      if (type && !title.toLowerCase().includes(type.toLowerCase())) {
+        optimizedQuery += ` ${type}`;
+      }
+      if (city && !optimizedQuery.toLowerCase().includes(city.toLowerCase())) {
+        optimizedQuery += ` ${city}`;
+      }
+
       console.log("useBingImageSearch - Construction de la requête:", {
         baseTitle: title,
         addedType: type,
