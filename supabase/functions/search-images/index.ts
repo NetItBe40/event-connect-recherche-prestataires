@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       throw new Error('Failed to retrieve Bing API key')
     }
 
-    const { query, count = 5 } = await req.json()
+    const { query, website, count = 5 } = await req.json()
 
     if (!query) {
       return new Response(
@@ -43,9 +43,24 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Searching images with query:', query)
+    let searchQuery = query;
     
-    const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(query)}&count=${count}&safeSearch=Strict`
+    // Si un site web est fourni, on l'utilise pour la recherche
+    if (website) {
+      try {
+        const url = new URL(website);
+        const domain = url.hostname;
+        searchQuery = `site:${domain}`;
+        console.log('Recherche avec site:', searchQuery);
+      } catch (error) {
+        console.error('Erreur lors du parsing de l\'URL:', error);
+        // On garde la requête originale si l'URL n'est pas valide
+      }
+    }
+
+    console.log('Recherche d\'images avec la requête:', searchQuery);
+    
+    const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(searchQuery)}&count=${count}&safeSearch=Strict`
 
     const response = await fetch(searchUrl, {
       headers: {
@@ -56,8 +71,8 @@ Deno.serve(async (req) => {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('Bing API error:', data)
-      throw new Error('Failed to fetch images from Bing')
+      console.error('Erreur API Bing:', data)
+      throw new Error('Impossible de récupérer les images depuis Bing')
     }
 
     const photos = data.value.map((image: any) => ({
@@ -76,7 +91,7 @@ Deno.serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Erreur:', error)
     return new Response(
       JSON.stringify({
         error: error.message,
