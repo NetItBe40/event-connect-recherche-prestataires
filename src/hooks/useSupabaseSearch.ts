@@ -28,22 +28,21 @@ interface Place {
 export const useSupabaseSearch = () => {
   const checkExistingPlace = async (query: string): Promise<Place | null> => {
     try {
+      console.log("Recherche d'un lieu existant avec le titre:", query);
+      
       const { data, error } = await supabase
         .from('places')
         .select('*')
-        .ilike('title', `%${query}%`);
+        .eq('place_id', query)
+        .maybeSingle();
 
       if (error) {
         console.error('Erreur lors de la vérification:', error);
         return null;
       }
 
-      // Si on a des résultats, on retourne le premier
-      if (data && data.length > 0) {
-        return data[0];
-      }
-
-      return null;
+      console.log("Résultat de la recherche:", data);
+      return data;
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
       return null;
