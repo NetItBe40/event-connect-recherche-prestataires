@@ -28,7 +28,7 @@ interface Place {
 export const useSupabaseSearch = () => {
   const checkExistingPlace = async (query: string): Promise<Place | null> => {
     try {
-      console.log("Recherche d'un lieu existant avec le titre:", query);
+      console.log("Recherche d'un lieu existant avec le place_id:", query);
       
       const { data, error } = await supabase
         .from('places')

@@ -24,10 +24,14 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         const { data: placeData, error } = await supabase
           .from('places')
           .select('website')
-          .eq('id', placeId)
-          .single();
+          .eq('place_id', placeId)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Erreur lors de la récupération du site web:", error);
+          throw error;
+        }
+        
         website = placeData?.website || '';
         console.log("useBingImageSearch - Site web trouvé:", website);
       }
