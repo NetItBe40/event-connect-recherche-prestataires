@@ -25,10 +25,9 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
   };
 
   const searchImages = async () => {
-    // Vérifier le délai depuis la dernière recherche
     const now = Date.now();
     const timeSinceLastSearch = now - lastSearchTime;
-    if (timeSinceLastSearch < 1500) { // 1.5 secondes pour être sûr
+    if (timeSinceLastSearch < 1500) {
       toast.error("Merci d'attendre un moment avant de relancer une recherche");
       return;
     }
@@ -82,7 +81,8 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       const optimizedQuery = queryParts.join(' ');
       console.log("Construction de la requête:", {
         queryParts,
-        finalQuery: optimizedQuery
+        finalQuery: optimizedQuery,
+        website
       });
 
       setSearchQuery(optimizedQuery);
@@ -102,7 +102,6 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       });
 
       if (response.error) {
-        // Gestion spécifique de l'erreur 429
         if (response.error.message.includes("429")) {
           throw new Error("Limite de requêtes atteinte. Merci de patienter quelques secondes avant de réessayer.");
         }
@@ -133,9 +132,7 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       });
     } catch (error: any) {
       console.error("Erreur complète:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message || "Impossible de récupérer les images",
       });
       setPhotos([]);
