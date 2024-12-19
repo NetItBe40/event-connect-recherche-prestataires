@@ -13,10 +13,24 @@ export function useImageSave() {
 
     setIsSaving(true);
     try {
+      // First, find the place by its Google Place ID
+      const { data: place, error: fetchError } = await supabase
+        .from("places")
+        .select("id")
+        .eq("place_id", placeId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!place) {
+        throw new Error("Place not found");
+      }
+
+      // Then update using the Supabase UUID
       const { error: updateError } = await supabase
         .from("places")
         .update({ photobing1: selectedImage })
-        .eq("id", placeId);
+        .eq("id", place.id);
 
       if (updateError) throw updateError;
 
