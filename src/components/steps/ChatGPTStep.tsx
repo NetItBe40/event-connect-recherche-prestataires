@@ -1,11 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
 import { generateDescription } from "@/api/generate-description";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useDescription } from "@/hooks/useDescription";
 import { DescriptionForm } from "../description/DescriptionForm";
+import { toast } from "sonner";
 
 interface ChatGPTStepProps {
   placeId?: string;
@@ -26,14 +25,9 @@ export function ChatGPTStep({
   phone, 
   description: initialDescription 
 }: ChatGPTStepProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const {
-    description,
-    setDescription,
-    error,
-    handleSaveDescription,
-  } = useDescription(placeId, initialDescription);
+  const [description, setDescription] = useState(initialDescription || "");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { handleSaveDescription, isLoading, error } = useDescription();
 
   console.log("ChatGPTStep - État initial:", {
     placeId,
@@ -43,7 +37,7 @@ export function ChatGPTStep({
   });
 
   const handleGenerateDescription = async () => {
-    setIsLoading(true);
+    setIsGenerating(true);
     
     try {
       const prompt = `Rédige une description complète et professionnelle pour un répertoire en ligne de prestataires spécialisés dans l'organisation d'événements. Inclut les informations suivantes :
@@ -70,64 +64,23 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
       }
 
       console.log("Description générée:", generatedDescription);
-
       setDescription(generatedDescription);
-
-      if (placeId) {
-        const formattedDescription = [generatedDescription.trim()];
-        
-        console.log("Sauvegarde de la description:", {
-          placeId,
-          formattedDescription,
-          jsonString: JSON.stringify(formattedDescription)
-        });
-
-        const { error: updateError } = await supabase
-          .from('places')
-          .update({ 
-            description: JSON.stringify(formattedDescription)
-          })
-          .eq('id', placeId);
-
-        if (updateError) {
-          console.error("Erreur lors de la sauvegarde:", updateError);
-          throw updateError;
-        }
-
-        const { data: verificationData, error: verificationError } = await supabase
-          .from('places')
-          .select('description')
-          .eq('id', placeId)
-          .single();
-
-        if (verificationError) {
-          console.error("Erreur lors de la vérification:", verificationError);
-          throw verificationError;
-        }
-
-        console.log("Description sauvegardée vérifiée:", verificationData);
-
-        toast({
-          title: "Description générée et sauvegardée",
-          description: "La description a été générée et sauvegardée avec succès",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Description générée",
-          description: "La description a été générée avec succès. Vous pouvez maintenant la sauvegarder.",
-        });
-      }
+      
+      toast.success("Description générée avec succès");
     } catch (error) {
       console.error("Erreur lors de la génération:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la génération de la description. Veuillez réessayer.",
-      });
+      toast.error("Une erreur est survenue lors de la génération de la description");
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
+  };
+
+  const onSave = async () => {
+    if (!placeId) {
+      toast.error("ID du lieu manquant");
+      return;
+    }
+    await handleSaveDescription(placeId, description);
   };
 
   return (
@@ -137,16 +90,16 @@ Si nécessaire, recherche sur Internet pour compléter les informations et enric
         
         <Button 
           onClick={handleGenerateDescription} 
-          disabled={isLoading}
+          disabled={isGenerating}
           className="w-full bg-google-blue hover:bg-google-blue/90"
         >
-          {isLoading ? "Génération en cours..." : "Générer la description"}
+          {isGenerating ? "Génération en cours..." : "Générer la description"}
         </Button>
         
         <DescriptionForm
           description={description}
           onDescriptionChange={setDescription}
-          onSave={handleSaveDescription}
+          onSave={onSave}
           error={error}
           isLoading={isLoading}
         />
