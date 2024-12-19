@@ -46,6 +46,8 @@ export function useCategorySuggestions(placeId: string) {
 
         // 5. Analyser avec l'AI si des données sont disponibles
         let finalCategories = categoriesWithSubs;
+        let suggestedIds: string[] = [];
+        
         if (placeData?.description || placeData?.type) {
           console.log("Analyse AI des catégories avec description:", placeData.description);
           const suggestedCategories = await analyzePlaceWithAI(
@@ -55,6 +57,7 @@ export function useCategorySuggestions(placeId: string) {
           );
 
           console.log("Catégories suggérées par l'AI:", suggestedCategories);
+          suggestedIds = suggestedCategories;
 
           finalCategories = categoriesWithSubs.map(category => ({
             ...category,
@@ -65,10 +68,14 @@ export function useCategorySuggestions(placeId: string) {
           }));
         }
 
-        // 6. Mettre à jour l'état
+        // 6. Mettre à jour l'état avec les catégories existantes ET suggérées
         console.log("Mise à jour des états");
         setCategories(finalCategories);
-        setSelectedSubcategories(existingIds);
+        
+        // Combiner les IDs existants avec les IDs suggérés
+        const combinedIds = [...new Set([...existingIds, ...suggestedIds])];
+        console.log("IDs combinés (existants + suggérés):", combinedIds);
+        setSelectedSubcategories(combinedIds);
 
       } catch (error: any) {
         console.error('Erreur lors du chargement des catégories:', error);
