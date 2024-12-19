@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   try {
     console.log('Starting search-images function')
     
-    // Get API key from vault
+    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -23,27 +23,39 @@ Deno.serve(async (req) => {
       }
     )
 
-    const { data: secretData, error: secretError } = await supabaseClient.rpc('get_secret', {
-      secret_name: 'BING_API_KEY',
-    })
+    // First, try to get the API key from the apikeys table
+    console.log('Checking apikeys table for Bing API key')
+    const { data: apiKeyData, error: apiKeyError } = await supabaseClient
+      .from('apikeys')
+      .select('apikey')
+      .eq('provider', 'bing')
+      .single()
 
-    if (secretError) {
-      console.error('Error getting Bing API key:', secretError)
-      throw new Error('Failed to retrieve Bing API key from vault')
+    let bingApiKey = ''
+
+    if (apiKeyError || !apiKeyData) {
+      console.log('No API key found in apikeys table, falling back to vault')
+      // If not found in apikeys table, try to get it from the vault
+      const { data: secretData, error: secretError } = await supabaseClient.rpc('get_secret', {
+        secret_name: 'BING_API_KEY',
+      })
+
+      if (secretError) {
+        console.error('Error getting Bing API key:', secretError)
+        throw new Error('Failed to retrieve Bing API key')
+      }
+
+      if (!secretData || !secretData.trim()) {
+        console.error('No valid Bing API key found in vault')
+        throw new Error('No valid Bing API key found')
+      }
+
+      bingApiKey = secretData
+      console.log('Successfully retrieved Bing API key from vault')
+    } else {
+      bingApiKey = apiKeyData.apikey
+      console.log('Successfully retrieved Bing API key from apikeys table')
     }
-
-    if (!secretData) {
-      console.error('No Bing API key found in vault')
-      throw new Error('Bing API key not found in vault')
-    }
-
-    // Validate that we have a non-empty API key
-    if (!secretData.trim()) {
-      console.error('Empty Bing API key retrieved from vault')
-      throw new Error('Invalid Bing API key: empty string')
-    }
-
-    console.log('Successfully retrieved Bing API key')
 
     const { query, website, count = 5 } = await req.json()
     console.log('Request parameters:', { query, website, count })
@@ -73,7 +85,7 @@ Deno.serve(async (req) => {
 
     const response = await fetch(searchUrl, {
       headers: {
-        'Ocp-Apim-Subscription-Key': secretData,
+        'Ocp-Apim-Subscription-Key': bingApiKey,
       },
     })
 
