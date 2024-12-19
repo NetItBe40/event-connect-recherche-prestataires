@@ -39,8 +39,16 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       let searchQuery;
       
       if (website) {
-        searchQuery = `site:${website}`;
-        console.log("useBingImageSearch - Utilisation de la requête site:", searchQuery);
+        // Extraire le domaine de base de l'URL
+        try {
+          const url = new URL(website);
+          const domain = url.hostname;
+          searchQuery = `site:${domain}`;
+          console.log("useBingImageSearch - Utilisation de la requête site:", searchQuery);
+        } catch (error) {
+          console.error("Erreur lors du parsing de l'URL:", error);
+          searchQuery = `${title} ${address}`;
+        }
       } else {
         searchQuery = `${title} ${address}`;
         console.log("useBingImageSearch - Utilisation de la requête titre + adresse:", searchQuery);
