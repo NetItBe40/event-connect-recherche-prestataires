@@ -66,6 +66,8 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
 
   const fetchCategories = async () => {
     try {
+      console.log("Début du fetchCategories pour le lieu:", placeId);
+      
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('id, name');
@@ -91,6 +93,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
       // Get the Supabase UUID for the place if this is a Google Place ID
       let finalPlaceId = placeId;
       if (placeId.startsWith('ChIJ')) {
+        console.log("Conversion de l'ID Google en ID Supabase");
         const { data: placeData, error: placeError } = await supabase
           .from('places')
           .select('id')
@@ -104,32 +107,51 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
 
         if (placeData) {
           finalPlaceId = placeData.id;
+          console.log("ID Supabase trouvé:", finalPlaceId);
         }
       }
 
+      // Récupération des sous-catégories existantes
+      console.log("Récupération des sous-catégories existantes pour le lieu:", finalPlaceId);
+      const { data: existingSubcategories, error: existingError } = await supabase
+        .from('place_subcategories')
+        .select('subcategory_id')
+        .eq('place_id', finalPlaceId);
+
+      if (existingError) {
+        console.error("Erreur lors de la récupération des sous-catégories existantes:", existingError);
+        throw existingError;
+      }
+
+      console.log("Sous-catégories existantes trouvées:", existingSubcategories);
+      
+      // Mise à jour des sous-catégories sélectionnées
+      const existingIds = existingSubcategories?.map(item => item.subcategory_id) || [];
+      console.log("IDs des sous-catégories existantes:", existingIds);
+      setSelectedSubcategories(existingIds);
+
+      // Récupération des données du lieu pour l'analyse AI
+      console.log("Récupération des données du lieu pour l'analyse AI");
       const { data: placeData, error: placeError } = await supabase
         .from('places')
         .select('description, type')
         .eq('id', finalPlaceId)
         .maybeSingle();
 
-      if (placeError) throw placeError;
-
-      const { data: existingSubcategories, error: existingError } = await supabase
-        .from('place_subcategories')
-        .select('subcategory_id')
-        .eq('place_id', finalPlaceId);
-
-      if (existingError) throw existingError;
-
-      setSelectedSubcategories(existingSubcategories?.map(item => item.subcategory_id) || []);
+      if (placeError) {
+        console.error("Erreur lors de la récupération des données du lieu:", placeError);
+        throw placeError;
+      }
 
       if (placeData?.description || placeData?.type) {
+        console.log("Analyse AI des catégories avec description:", placeData.description);
         const suggestedCategories = await analyzePlaceWithAI(
           placeData.description || "",
           placeData.type || "",
           categoriesWithSubs
         );
+
+        console.log("Catégories suggérées par l'AI:", suggestedCategories);
 
         const categoriesWithSuggestions = categoriesWithSubs.map(category => ({
           ...category,
@@ -141,6 +163,7 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
 
         setCategories(categoriesWithSuggestions);
       } else {
+        console.log("Pas de description ou de type pour l'analyse AI");
         setCategories(categoriesWithSubs);
       }
 
@@ -157,7 +180,10 @@ ${cat.subcategories.map(sub => `- ${sub.name}`).join('\n')}`).join('\n\n')}
   };
 
   useEffect(() => {
-    fetchCategories();
+    console.log("useEffect déclenché avec placeId:", placeId);
+    if (placeId) {
+      fetchCategories();
+    }
   }, [placeId]);
 
   return {
