@@ -12,15 +12,6 @@ export function usePlaceSelection({ place, onSelect }: PlaceSelectionProps) {
 
   const handleSelect = async () => {
     try {
-      if (!place.title || !place.address) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Le titre et l'adresse sont obligatoires",
-        });
-        return;
-      }
-
       console.log("Début de la sauvegarde du lieu:", place);
 
       const reviews = place.reviews ? place.reviews.toString().replace(/\s+avis$/, '') : null;
@@ -29,8 +20,8 @@ export function usePlaceSelection({ place, onSelect }: PlaceSelectionProps) {
         .from('places')
         .insert([
           {
-            title: place.title,
-            address: place.address,
+            title: place.title || null,
+            address: place.address || null,
             rating: place.rating,
             reviews: reviews,
             type: place.type,
