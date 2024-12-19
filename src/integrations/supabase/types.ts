@@ -80,7 +80,7 @@ export type Database = {
       }
       places: {
         Row: {
-          address: string
+          address: string | null
           city: string | null
           created_at: string
           description: string | null
@@ -108,7 +108,7 @@ export type Database = {
           state: string | null
           tiktok: string | null
           timezone: string | null
-          title: string
+          title: string | null
           twitter: string | null
           type: string | null
           verified: boolean | null
@@ -116,7 +116,7 @@ export type Database = {
           youtube: string | null
         }
         Insert: {
-          address: string
+          address?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
@@ -144,7 +144,7 @@ export type Database = {
           state?: string | null
           tiktok?: string | null
           timezone?: string | null
-          title: string
+          title?: string | null
           twitter?: string | null
           type?: string | null
           verified?: boolean | null
@@ -152,7 +152,7 @@ export type Database = {
           youtube?: string | null
         }
         Update: {
-          address?: string
+          address?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
@@ -180,7 +180,7 @@ export type Database = {
           state?: string | null
           tiktok?: string | null
           timezone?: string | null
-          title?: string
+          title?: string | null
           twitter?: string | null
           type?: string | null
           verified?: boolean | null
