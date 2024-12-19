@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageGrid } from "./ImageGrid";
 import { useBingImageSearch } from "@/hooks/useBingImageSearch";
 import { useImageSave } from "@/hooks/useImageSave";
+import { toast } from "sonner";
 
 interface BingImageStepProps {
   placeId?: string;
@@ -17,6 +18,16 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
   
   const { photos, isLoading, searchImages, searchQuery } = useBingImageSearch(title, address, placeId);
   const { saveImage, isSaving } = useImageSave();
+
+  useEffect(() => {
+    // Afficher la requête qui va être utilisée
+    toast.info("Requête de recherche", {
+      description: searchQuery || `${title} ${address}`
+    });
+    
+    // Lancer la recherche automatiquement
+    searchImages();
+  }, [title, address, placeId, searchQuery, searchImages]);
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImage(imageUrl);
@@ -44,7 +55,7 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
           disabled={isLoading}
           className="w-full bg-google-blue hover:bg-google-blue/90"
         >
-          {isLoading ? "Recherche en cours..." : "Rechercher des images"}
+          {isLoading ? "Recherche en cours..." : "Rafraîchir les images"}
         </Button>
       </div>
 
