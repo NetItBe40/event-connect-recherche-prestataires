@@ -17,27 +17,36 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
   const searchImages = async () => {
     setIsLoading(true);
     try {
-      // Récupérer d'abord le site web depuis la base de données
+      // Récupérer les informations du lieu depuis la base de données
       let website = '';
+      let type = '';
+      let city = '';
+      
       if (placeId) {
-        console.log("useBingImageSearch - Recherche du site web pour l'ID:", placeId);
+        console.log("useBingImageSearch - Recherche des informations pour l'ID:", placeId);
         const { data: placeData, error } = await supabase
           .from('places')
-          .select('website')
+          .select('website, type, city')
           .eq('id', placeId)
           .maybeSingle();
 
         if (error) {
-          console.error("Erreur lors de la récupération du site web:", error);
+          console.error("Erreur lors de la récupération des informations:", error);
           throw error;
         }
         
         website = placeData?.website || '';
-        console.log("useBingImageSearch - Site web trouvé:", website);
+        type = placeData?.type || '';
+        city = placeData?.city || '';
+        console.log("useBingImageSearch - Informations trouvées:", { website, type, city });
       }
       
-      const searchQuery = `${title} ${address}`;
-      console.log("useBingImageSearch - Requête de recherche:", searchQuery);
+      // Construire une requête optimisée
+      let searchQuery = title;
+      if (type) searchQuery += ` ${type}`;
+      if (city) searchQuery += ` ${city}`;
+      
+      console.log("useBingImageSearch - Requête de recherche optimisée:", searchQuery);
       
       const response = await supabase.functions.invoke('search-images', {
         body: { 
