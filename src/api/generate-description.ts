@@ -6,7 +6,9 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-export async function generateDescription(prompt: string) {
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function generateDescription(prompt: string, retryCount = 0) {
   try {
     console.log("Début de la récupération de la clé API");
     
@@ -32,7 +34,7 @@ export async function generateDescription(prompt: string) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -52,7 +54,16 @@ export async function generateDescription(prompt: string) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
       if (openaiError?.status === 429) {
-        if (openaiError.message?.includes("quota")) {
+        const errorBody = JSON.parse(openaiError.body);
+        const waitTime = errorBody?.error?.message?.match(/try again in (\d+\.?\d*)s/)?.[1];
+        
+        if (waitTime && retryCount < 3) {
+          console.log(`Attente de ${waitTime}s avant de réessayer...`);
+          await wait(Math.ceil(parseFloat(waitTime) * 1000));
+          return generateDescription(prompt, retryCount + 1);
+        }
+        
+        if (errorBody?.error?.message?.includes("quota")) {
           throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
         } else {
           throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
