@@ -15,8 +15,7 @@ export function StepProgress({ currentStep, onStepClick, selectedPlace }: StepPr
     "Recherche Google Maps",
     "Description ChatGPT",
     "Image Bing",
-    "Catégories",
-    "Enrichissement"
+    "Catégories"
   ];
 
   const handleStepClick = (stepIndex: number) => {
