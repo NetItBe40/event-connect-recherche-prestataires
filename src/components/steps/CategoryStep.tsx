@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SubcategoryList } from "../category/SubcategoryList";
 import { useCategorySuggestions } from "@/hooks/useCategorySuggestions";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface CategoryStepProps {
   placeId: string;
@@ -92,7 +93,12 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Sélectionnez les catégories</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Sélectionnez les catégories</h2>
+        <Badge variant="secondary" className="text-sm">
+          {selectedSubcategories.length} sous-catégorie{selectedSubcategories.length > 1 ? 's' : ''} sélectionnée{selectedSubcategories.length > 1 ? 's' : ''}
+        </Badge>
+      </div>
       
       <Accordion type="single" collapsible className="w-full">
         {categories.map((category) => (
