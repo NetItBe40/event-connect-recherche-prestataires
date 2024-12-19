@@ -30,19 +30,37 @@ export const useSupabaseSearch = () => {
     try {
       console.log("Recherche d'un lieu existant avec le place_id:", placeId);
       
-      const { data, error } = await supabase
-        .from('places')
-        .select('*')
-        .eq('place_id', placeId)
-        .maybeSingle();
+      // Si l'ID commence par ChIJ, c'est un Google Place ID
+      if (placeId.startsWith('ChIJ')) {
+        const { data, error } = await supabase
+          .from('places')
+          .select('*')
+          .eq('place_id', placeId)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Erreur lors de la vérification:', error);
-        return null;
+        if (error) {
+          console.error('Erreur lors de la vérification:', error);
+          return null;
+        }
+
+        console.log("Résultat de la recherche:", data);
+        return data;
+      } else {
+        // Si ce n'est pas un Google Place ID, on suppose que c'est un UUID Supabase
+        const { data, error } = await supabase
+          .from('places')
+          .select('*')
+          .eq('id', placeId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Erreur lors de la vérification:', error);
+          return null;
+        }
+
+        console.log("Résultat de la recherche:", data);
+        return data;
       }
-
-      console.log("Résultat de la recherche:", data);
-      return data;
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
       return null;
