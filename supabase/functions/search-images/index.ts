@@ -54,20 +54,12 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Construction de la requête de recherche
+    // Simplification de la construction de la requête
     let searchQuery = query
-    
-    // Si un site web est fourni, on l'ajoute à la requête avec site:
     if (website) {
-      try {
-        const url = new URL(website)
-        const domain = url.hostname.replace('www.', '')
-        searchQuery = `${query} site:${domain}`
-        console.log('Combined search query with website:', searchQuery)
-      } catch (error) {
-        console.error('Error parsing website URL:', error)
-        // Keep original query if URL is invalid
-      }
+      // On ajoute simplement le nom du site à la recherche sans utiliser site:
+      searchQuery = `${query} "${website}"`
+      console.log('Search query with website:', searchQuery)
     }
 
     const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(searchQuery)}&count=${count}&safeSearch=Strict`
