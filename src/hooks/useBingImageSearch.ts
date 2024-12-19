@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface ImageResult {
   url: string;
@@ -13,10 +13,9 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
   const [photos, setPhotos] = useState<ImageResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { toast } = useToast();
+  const [lastSearchTime, setLastSearchTime] = useState(0);
 
   const cleanText = (text: string) => {
-    // Supprimer les répétitions du nom dans l'adresse
     return text.replace(new RegExp(`^${title},\\s*`), '');
   };
 
@@ -26,12 +25,19 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
   };
 
   const searchImages = async () => {
+    // Vérifier le délai depuis la dernière recherche
+    const now = Date.now();
+    const timeSinceLastSearch = now - lastSearchTime;
+    if (timeSinceLastSearch < 1500) { // 1.5 secondes pour être sûr
+      toast.error("Merci d'attendre un moment avant de relancer une recherche");
+      return;
+    }
+
     setIsLoading(true);
     try {
       console.log("=== Début de la recherche d'images ===");
       console.log("Données initiales:", { title, address, placeId });
 
-      // Nettoyer l'adresse
       const cleanedAddress = cleanText(address);
       console.log("Adresse nettoyée:", cleanedAddress);
 
@@ -58,13 +64,11 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
         city = placeData?.city || '';
       }
 
-      // Extraire la ville si non définie
       if (!city) {
         city = extractCity(cleanedAddress);
         console.log("Ville extraite de l'adresse:", city);
       }
 
-      // Construction de la requête optimisée
       const queryParts = [title];
       
       if (type && !title.toLowerCase().includes(type.toLowerCase())) {
@@ -98,6 +102,10 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       });
 
       if (response.error) {
+        // Gestion spécifique de l'erreur 429
+        if (response.error.message.includes("429")) {
+          throw new Error("Limite de requêtes atteinte. Merci de patienter quelques secondes avant de réessayer.");
+        }
         console.error("Erreur de la fonction search-images:", response.error);
         throw new Error(response.error.message);
       }
@@ -118,17 +126,17 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
 
       console.log("Photos triées et filtrées:", sortedPhotos);
       setPhotos(sortedPhotos);
+      setLastSearchTime(now);
 
-      toast({
-        title: "Images trouvées",
+      toast.success("Images trouvées", {
         description: "Les images ont été récupérées avec succès",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur complète:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de récupérer les images",
+        description: error.message || "Impossible de récupérer les images",
       });
       setPhotos([]);
     } finally {
