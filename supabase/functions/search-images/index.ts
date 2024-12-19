@@ -3,16 +3,23 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 const BING_ENDPOINT = 'https://api.bing.microsoft.com/v7.0/images/search'
 
+console.log("=== Edge Function search-images loaded ===");
+
 Deno.serve(async (req) => {
+  console.log("=== New request received ===");
+  console.log("Request method:", req.method);
+  
   // Handle CORS
   if (req.method === 'OPTIONS') {
+    console.log("Handling CORS preflight request");
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    console.log('=== Début de la fonction search-images ===')
+    console.log('=== Starting search-images function execution ===')
     
     // Create Supabase client
+    console.log("Creating Supabase client...");
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -22,9 +29,10 @@ Deno.serve(async (req) => {
         }
       }
     )
+    console.log("Supabase client created successfully");
 
     // First, try to get the API key from the apikeys table
-    console.log('Vérification de la clé API Bing dans la table apikeys')
+    console.log('Checking apikeys table for Bing API key (bingkey1)');
     const { data: apiKeyData, error: apiKeyError } = await supabaseClient
       .from('apikeys')
       .select('apikey')
@@ -34,7 +42,7 @@ Deno.serve(async (req) => {
     let bingApiKey = ''
 
     if (apiKeyError || !apiKeyData) {
-      console.log('Pas de clé API trouvée pour bingkey1, essai avec bingkey2')
+      console.log('No API key found for bingkey1, trying bingkey2');
       // Try bingkey2 if bingkey1 fails
       const { data: apiKey2Data, error: apiKey2Error } = await supabaseClient
         .from('apikeys')
@@ -43,41 +51,45 @@ Deno.serve(async (req) => {
         .single()
 
       if (apiKey2Error || !apiKey2Data) {
-        console.log('Pas de clé API trouvée dans la table apikeys, utilisation du vault')
+        console.log('No API key found in apikeys table, trying vault');
         // If not found in apikeys table, try to get it from the vault
         const { data: secretData, error: secretError } = await supabaseClient.rpc('get_secret', {
           secret_name: 'BING_API_KEY',
         })
 
         if (secretError) {
-          console.error('Erreur lors de la récupération de la clé API Bing:', secretError)
-          throw new Error('Impossible de récupérer la clé API Bing')
+          console.error('Error retrieving Bing API key:', secretError);
+          throw new Error('Unable to retrieve Bing API key')
         }
 
         if (!secretData || !secretData.trim()) {
-          console.error('Aucune clé API Bing valide trouvée dans le vault')
-          throw new Error('Aucune clé API Bing valide trouvée')
+          console.error('No valid Bing API key found in vault');
+          throw new Error('No valid Bing API key found')
         }
 
         bingApiKey = secretData
-        console.log('Clé API Bing récupérée avec succès depuis le vault')
+        console.log('Successfully retrieved Bing API key from vault');
       } else {
         bingApiKey = apiKey2Data.apikey
-        console.log('Clé API Bing récupérée avec succès depuis bingkey2')
+        console.log('Successfully retrieved Bing API key from bingkey2');
       }
     } else {
       bingApiKey = apiKeyData.apikey
-      console.log('Clé API Bing récupérée avec succès depuis bingkey1')
+      console.log('Successfully retrieved Bing API key from bingkey1');
     }
 
-    const { query, website, count = 5 } = await req.json()
-    console.log('Paramètres de la requête reçus:', { query, website, count })
+    console.log("Parsing request body...");
+    const requestBody = await req.json();
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
+    const { query, website, count = 5 } = requestBody;
+    console.log('Request parameters:', { query, website, count });
 
     if (!query) {
-      console.error('Erreur: paramètre query manquant')
+      console.error('Error: missing query parameter');
       return new Response(
         JSON.stringify({
-          error: 'Le paramètre query est requis',
+          error: 'The query parameter is required',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -89,13 +101,13 @@ Deno.serve(async (req) => {
     let searchQuery = query
     if (website) {
       searchQuery = `${query} "${website}"`
-      console.log('Requête de recherche avec site web:', searchQuery)
+      console.log('Search query with website:', searchQuery);
     }
 
     const searchUrl = `${BING_ENDPOINT}?q=${encodeURIComponent(searchQuery)}&count=${count}&safeSearch=Strict`
-    console.log('URL de la requête Bing:', searchUrl)
+    console.log('Bing API request URL:', searchUrl);
 
-    console.log('Envoi de la requête à l\'API Bing...')
+    console.log('Sending request to Bing API...');
     const response = await fetch(searchUrl, {
       headers: {
         'Ocp-Apim-Subscription-Key': bingApiKey,
@@ -103,24 +115,24 @@ Deno.serve(async (req) => {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Erreur API Bing:', {
+      const errorText = await response.text();
+      console.error('Bing API error:', {
         status: response.status,
         statusText: response.statusText,
         body: errorText
-      })
-      throw new Error(`L'API Bing a retourné ${response.status}: ${errorText}`)
+      });
+      throw new Error(`Bing API returned ${response.status}: ${errorText}`);
     }
 
-    const data = await response.json()
-    console.log('Réponse reçue de l\'API Bing:', {
+    const data = await response.json();
+    console.log('Received response from Bing API:', {
       totalEstimatedMatches: data.totalEstimatedMatches,
       resultCount: data.value?.length
-    })
+    });
 
     if (!data.value || !Array.isArray(data.value)) {
-      console.error('Format de réponse invalide de l\'API Bing:', data)
-      throw new Error('Format de réponse invalide de l\'API Bing')
+      console.error('Invalid response format from Bing API:', data);
+      throw new Error('Invalid response format from Bing API');
     }
 
     const photos = data.value.map((image: any) => ({
@@ -128,10 +140,10 @@ Deno.serve(async (req) => {
       width: image.width,
       height: image.height,
       contentSize: image.contentSize,
-    }))
+    }));
 
-    console.log(`Traitement réussi de ${photos.length} images`)
-    console.log('=== Fin de la fonction search-images ===')
+    console.log(`Successfully processed ${photos.length} images`);
+    console.log('=== End of search-images function ===');
 
     return new Response(
       JSON.stringify({
@@ -142,10 +154,10 @@ Deno.serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Erreur dans la fonction search-images:', error)
+    console.error('Error in search-images function:', error);
     return new Response(
       JSON.stringify({
-        error: error.message || 'Une erreur inattendue est survenue',
+        error: error.message || 'An unexpected error occurred',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
