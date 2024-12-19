@@ -37,6 +37,12 @@ Deno.serve(async (req) => {
       throw new Error('Bing API key not found in vault')
     }
 
+    // Validate that we have a non-empty API key
+    if (!secretData.trim()) {
+      console.error('Empty Bing API key retrieved from vault')
+      throw new Error('Invalid Bing API key: empty string')
+    }
+
     console.log('Successfully retrieved Bing API key')
 
     const { query, website, count = 5 } = await req.json()
