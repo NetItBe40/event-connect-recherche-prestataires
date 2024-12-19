@@ -40,17 +40,30 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       let city = '';
       
       if (placeId) {
-        const { data: placeData, error } = await supabase
+        // Determine which column to use based on the placeId format
+        const isGooglePlaceId = placeId.startsWith('ChIJ');
+        const query = supabase
           .from('places')
-          .select('website, type, city')
-          .eq('id', placeId)
-          .maybeSingle();
+          .select('website, type, city');
 
-        if (error) throw error;
+        if (isGooglePlaceId) {
+          query.eq('place_id', placeId);
+        } else {
+          query.eq('id', placeId);
+        }
 
-        website = placeData?.website || '';
-        type = placeData?.type || '';
-        city = placeData?.city || '';
+        const { data: placeData, error } = await query.maybeSingle();
+
+        if (error) {
+          console.error('Erreur lors de la récupération des données:', error);
+          throw error;
+        }
+
+        if (placeData) {
+          website = placeData.website || '';
+          type = placeData.type || '';
+          city = placeData.city || '';
+        }
       }
 
       if (!city) {
