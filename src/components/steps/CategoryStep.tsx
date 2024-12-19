@@ -40,7 +40,14 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
           .maybeSingle();
 
         if (placeError) throw placeError;
-        if (!placeData) throw new Error('Place not found');
+        if (!placeData) {
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Place non trouvée",
+          });
+          return;
+        }
         
         finalPlaceId = placeData.id;
       }
@@ -69,12 +76,12 @@ export function CategoryStep({ placeId }: CategoryStepProps) {
         title: "Succès",
         description: "Les catégories ont été sauvegardées",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast({
+        variant: "destructive",
         title: "Erreur",
         description: "Impossible de sauvegarder les catégories",
-        variant: "destructive",
       });
     }
   };
