@@ -57,7 +57,6 @@ export function useBingImageSearch(title: string, address: string, placeId?: str
       const response = await supabase.functions.invoke('search-images', {
         body: { 
           query: searchQuery,
-          website: website,
           count: 10
         },
       });
