@@ -1,15 +1,9 @@
 import { Check } from "lucide-react";
 import { PlacePhoto } from "../PlacePhoto";
-
-interface ImageResult {
-  url: string;
-  width: number;
-  height: number;
-  contentSize: string;
-}
+import { BingImageSearchResult } from "@/hooks/useBingImageSearch";
 
 interface ImageGridProps {
-  photos: ImageResult[];
+  photos: BingImageSearchResult[];
   selectedImage: string | null;
   title: string;
   onImageSelect: (imageUrl: string) => void;

@@ -1,45 +1,52 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from "sonner";
 
-interface BingImageSearchResult {
-  imageUrl: string;
-  thumbnailUrl: string;
-  name: string;
+export interface BingImageSearchResult {
+  url: string;
+  width: number;
+  height: number;
+  contentSize: string;
 }
 
 export function useBingImageSearch() {
   const [images, setImages] = useState<BingImageSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const searchImages = async (query: string) => {
     setIsLoading(true);
     try {
       console.log("Début de la récupération de la clé API");
       
-      // Récupérer la première clé API Bing disponible
+      // Try bingkey1 first
       const { data: apiKeyData, error: apiKeyError } = await supabase
         .from('apikeys')
         .select('apikey')
-        .eq('provider', 'bing')
-        .limit(1)
-        .single();
+        .eq('provider', 'bingkey1')
+        .maybeSingle();
 
-      if (apiKeyError) {
-        console.error("Erreur lors de la récupération de la clé API:", apiKeyError);
-        throw new Error("Impossible de récupérer la clé API");
-      }
+      let apiKey = apiKeyData?.apikey;
 
-      if (!apiKeyData?.apikey) {
-        throw new Error("Aucune clé API trouvée");
+      if (!apiKey) {
+        console.log("Pas de clé trouvée pour bingkey1, essai avec bingkey2");
+        // Try bingkey2 if bingkey1 fails
+        const { data: apiKey2Data, error: apiKey2Error } = await supabase
+          .from('apikeys')
+          .select('apikey')
+          .eq('provider', 'bingkey2')
+          .maybeSingle();
+
+        if (apiKey2Error || !apiKey2Data) {
+          throw new Error("Aucune clé API Bing valide trouvée");
+        }
+        apiKey = apiKey2Data.apikey;
       }
 
       console.log("Clé API récupérée, début de la recherche d'images");
 
       const response = await fetch(`https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(query)}&count=10`, {
         headers: {
-          'Ocp-Apim-Subscription-Key': apiKeyData.apikey
+          'Ocp-Apim-Subscription-Key': apiKey
         }
       });
 
@@ -51,20 +58,17 @@ export function useBingImageSearch() {
       
       console.log("Résultats de la recherche d'images:", data);
 
-      const formattedResults = data.value.map((image: any) => ({
-        imageUrl: image.contentUrl,
-        thumbnailUrl: image.thumbnailUrl,
-        name: image.name
+      const formattedResults: BingImageSearchResult[] = data.value.map((image: any) => ({
+        url: image.contentUrl,
+        width: image.width,
+        height: image.height,
+        contentSize: image.contentSize || 'Unknown'
       }));
 
       setImages(formattedResults);
     } catch (error: any) {
       console.error("Erreur lors de la recherche d'images:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message || "Impossible de rechercher des images"
-      });
+      toast.error(error.message || "Impossible de rechercher des images");
       setImages([]);
     } finally {
       setIsLoading(false);
