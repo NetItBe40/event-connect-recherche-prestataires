@@ -9,11 +9,13 @@ export interface BingImageSearchResult {
   contentSize: string;
 }
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export function useBingImageSearch() {
   const [images, setImages] = useState<BingImageSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const searchImages = async (query: string) => {
+  const searchImages = async (query: string, retryCount = 0) => {
     if (!query) {
       toast.error("La requête de recherche est vide");
       return;
@@ -47,13 +49,27 @@ export function useBingImageSearch() {
         apiKey = apiKey2Data.apikey;
       }
 
-      console.log("Clé API récupérée, début de la recherche d'images");
+      // Add a small delay between requests to respect rate limits
+      await delay(1000);
 
       const response = await fetch(`https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(query)}&count=10`, {
         headers: {
           'Ocp-Apim-Subscription-Key': apiKey
         }
       });
+
+      if (response.status === 429) {
+        // Rate limit hit - implement exponential backoff
+        const waitTime = Math.min(Math.pow(2, retryCount) * 1000, 8000); // Max 8 seconds wait
+        
+        if (retryCount < 3) { // Max 3 retries
+          toast.info(`Limite de requêtes atteinte, nouvelle tentative dans ${waitTime/1000} secondes...`);
+          await delay(waitTime);
+          return searchImages(query, retryCount + 1);
+        } else {
+          throw new Error("Limite de requêtes Bing atteinte. Veuillez réessayer plus tard.");
+        }
+      }
 
       if (!response.ok) {
         throw new Error(`Erreur API Bing: ${response.statusText}`);
