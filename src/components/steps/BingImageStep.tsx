@@ -17,19 +17,21 @@ interface BingImageStepProps {
 export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [customQuery, setCustomQuery] = useState<string>("");
+  const defaultQuery = `${title} ${address}`;
+  
   console.log("BingImageStep - Données reçues:", { placeId, title, address });
   
-  const { photos, isLoading, searchImages, searchQuery } = useBingImageSearch(title, address, placeId);
+  const { images, isLoading, searchImages } = useBingImageSearch();
   const { saveImage, isSaving } = useImageSave();
 
   useEffect(() => {
     // Afficher la requête qui va être utilisée
     toast.info("Requête de recherche", {
-      description: searchQuery || `${title} ${address}`
+      description: defaultQuery
     });
     
     // Lancer la recherche uniquement au montage initial
-    searchImages();
+    searchImages(defaultQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Dépendances vides pour n'exécuter qu'au montage
 
@@ -71,7 +73,7 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
             <div className="flex gap-2">
               <Input
                 id="customQuery"
-                placeholder={searchQuery || `${title} ${address}`}
+                placeholder={defaultQuery}
                 value={customQuery}
                 onChange={(e) => setCustomQuery(e.target.value)}
               />
@@ -89,12 +91,12 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
         <div className="space-y-2">
           <p className="text-sm text-gray-600">
             Requête Bing : <span className="font-mono bg-gray-100 px-2 py-1 rounded">
-              {searchQuery || `${title} ${address}`}
+              {customQuery || defaultQuery}
             </span>
           </p>
         </div>
         <Button 
-          onClick={() => searchImages()}
+          onClick={() => searchImages(defaultQuery)}
           disabled={isLoading}
           className="w-full bg-google-blue hover:bg-google-blue/90"
         >
@@ -102,10 +104,10 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
         </Button>
       </div>
 
-      {photos.length > 0 && (
+      {images.length > 0 && (
         <div className="space-y-4">
           <ImageGrid
-            photos={photos}
+            photos={images}
             selectedImage={selectedImage}
             title={title}
             onImageSelect={handleImageSelect}
