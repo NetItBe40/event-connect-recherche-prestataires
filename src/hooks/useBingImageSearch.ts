@@ -14,6 +14,11 @@ export function useBingImageSearch() {
   const [isLoading, setIsLoading] = useState(false);
 
   const searchImages = async (query: string) => {
+    if (!query) {
+      toast.error("La requête de recherche est vide");
+      return;
+    }
+
     setIsLoading(true);
     try {
       console.log("Début de la récupération de la clé API");

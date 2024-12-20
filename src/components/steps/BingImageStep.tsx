@@ -19,12 +19,12 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
   const [customQuery, setCustomQuery] = useState<string>("");
   const defaultQuery = `${title} ${address}`;
   
-  console.log("BingImageStep - Données reçues:", { placeId, title, address });
-  
   const { images, isLoading, searchImages } = useBingImageSearch();
   const { saveImage, isSaving } = useImageSave();
 
   useEffect(() => {
+    if (!defaultQuery) return;
+    
     // Afficher la requête qui va être utilisée
     toast.info("Requête de recherche", {
       description: defaultQuery
@@ -32,8 +32,7 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
     
     // Lancer la recherche uniquement au montage initial
     searchImages(defaultQuery);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Dépendances vides pour n'exécuter qu'au montage
+  }, [defaultQuery, searchImages]); // Ajout des dépendances manquantes
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImage(imageUrl);
