@@ -32,7 +32,7 @@ export function BingImageStep({ placeId, title, address }: BingImageStepProps) {
     
     // Lancer la recherche uniquement au montage initial
     searchImages(defaultQuery);
-  }, [defaultQuery, searchImages]); // Ajout des dépendances manquantes
+  }, []); // Suppression de defaultQuery et searchImages des dépendances
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImage(imageUrl);
