@@ -18,23 +18,23 @@ export function useImageSave() {
       // Check if this is a Google Place ID (starts with 'ChIJ')
       if (placeId.startsWith('ChIJ')) {
         console.log("Recherche du lieu avec le Google Place ID:", placeId);
-        const { data: place, error: fetchError } = await supabase
+        const { data: places, error: fetchError } = await supabase
           .from("places")
           .select("id")
-          .eq("place_id", placeId)
-          .maybeSingle();
+          .eq("place_id", placeId);
 
         if (fetchError) {
           console.error("Erreur lors de la recherche du lieu:", fetchError);
           throw fetchError;
         }
 
-        if (!place) {
+        if (!places || places.length === 0) {
           console.error("Aucun lieu trouvé avec ce Google Place ID");
           throw new Error("Lieu non trouvé");
         }
 
-        finalId = place.id;
+        // Prendre le premier ID trouvé
+        finalId = places[0].id;
         console.log("ID Supabase trouvé:", finalId);
       } else {
         // If it's not a Google Place ID, use it directly as Supabase UUID
