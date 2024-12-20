@@ -49,9 +49,10 @@ export function useBingImageSearch() {
         apiKey = apiKey2Data.apikey;
       }
 
-      // Add a small delay between requests to respect rate limits
-      await delay(1000);
+      // Add a longer initial delay between requests to respect rate limits
+      await delay(2000);
 
+      console.log("Envoi de la requête à l'API Bing...");
       const response = await fetch(`https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(query)}&count=10`, {
         headers: {
           'Ocp-Apim-Subscription-Key': apiKey
@@ -59,15 +60,18 @@ export function useBingImageSearch() {
       });
 
       if (response.status === 429) {
-        // Rate limit hit - implement exponential backoff
-        const waitTime = Math.min(Math.pow(2, retryCount) * 1000, 8000); // Max 8 seconds wait
+        // Rate limit hit - implement exponential backoff with longer delays
+        const waitTime = Math.min(Math.pow(2, retryCount + 2) * 1000, 10000); // Max 10 seconds wait
         
         if (retryCount < 3) { // Max 3 retries
-          toast.info(`Limite de requêtes atteinte, nouvelle tentative dans ${waitTime/1000} secondes...`);
+          console.log(`Tentative ${retryCount + 1}/3 - Attente de ${waitTime/1000} secondes...`);
+          toast.info(`Limite de requêtes atteinte, nouvelle tentative dans ${waitTime/1000} secondes...`, {
+            duration: waitTime
+          });
           await delay(waitTime);
           return searchImages(query, retryCount + 1);
         } else {
-          throw new Error("Limite de requêtes Bing atteinte. Veuillez réessayer plus tard.");
+          throw new Error("Limite de requêtes Bing atteinte. Veuillez réessayer dans quelques minutes.");
         }
       }
 
