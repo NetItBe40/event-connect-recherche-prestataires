@@ -34,7 +34,7 @@ export async function generateDescription(prompt: string, retryCount = 0) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Utilisation d'un modèle valide d'OpenAI
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -49,38 +49,28 @@ export async function generateDescription(prompt: string, retryCount = 0) {
         max_tokens: 1000
       });
 
-      const content = completion.choices[0].message.content;
-      if (!content) {
-        throw new Error("La réponse d'OpenAI est vide");
-      }
-
-      return content;
-
+      return completion.choices[0].message.content;
     } catch (openaiError: any) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
-      // Gestion spécifique de l'erreur de quota
       if (openaiError?.status === 429) {
-        const errorBody = typeof openaiError.body === 'string' ? JSON.parse(openaiError.body) : openaiError.body;
+        const errorBody = JSON.parse(openaiError.body);
+        const waitTime = errorBody?.error?.message?.match(/try again in (\d+\.?\d*)s/)?.[1];
         
-        if (errorBody?.error?.type === 'insufficient_quota' || 
-            errorBody?.error?.code === 'insufficient_quota' ||
-            openaiError.message?.includes('quota')) {
-          throw new Error("La clé API OpenAI a atteint sa limite de quota. Veuillez mettre à jour votre clé API dans les paramètres.");
-        }
-        
-        // Pour les autres erreurs 429 (rate limiting), on utilise le backoff exponentiel
-        const waitTime = 2000 * (retryCount + 1);
-        if (retryCount < 3) {
-          console.log(`Attente de ${waitTime/1000}s avant de réessayer...`);
-          await wait(waitTime);
+        if (waitTime && retryCount < 3) {
+          console.log(`Attente de ${waitTime}s avant de réessayer...`);
+          await wait(Math.ceil(parseFloat(waitTime) * 1000));
           return generateDescription(prompt, retryCount + 1);
         }
         
-        throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
+        if (errorBody?.error?.message?.includes("quota")) {
+          throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+        } else {
+          throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
+        }
       }
       
-      throw new Error(`Erreur OpenAI: ${openaiError.message || "Erreur inconnue"}`);
+      throw openaiError;
     }
   } catch (error: any) {
     console.error("Erreur lors de la génération de la description:", error);
