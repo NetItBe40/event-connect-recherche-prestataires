@@ -34,7 +34,7 @@ export async function generateDescription(prompt: string, retryCount = 0) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Correction du modèle
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -59,12 +59,18 @@ export async function generateDescription(prompt: string, retryCount = 0) {
     } catch (openaiError: any) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
+      // Gestion spécifique de l'erreur de quota
       if (openaiError?.status === 429) {
-        if (openaiError.message?.includes("quota")) {
-          throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+        const errorBody = typeof openaiError.body === 'string' ? JSON.parse(openaiError.body) : openaiError.body;
+        
+        if (errorBody?.error?.type === 'insufficient_quota' || 
+            errorBody?.error?.code === 'insufficient_quota' ||
+            openaiError.message?.includes('quota')) {
+          throw new Error("La clé API OpenAI a atteint sa limite de quota. Veuillez mettre à jour votre clé API dans les paramètres.");
         }
         
-        const waitTime = 2000 * (retryCount + 1); // Backoff exponentiel
+        // Pour les autres erreurs 429 (rate limiting), on utilise le backoff exponentiel
+        const waitTime = 2000 * (retryCount + 1);
         if (retryCount < 3) {
           console.log(`Attente de ${waitTime/1000}s avant de réessayer...`);
           await wait(waitTime);
