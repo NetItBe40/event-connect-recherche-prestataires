@@ -34,7 +34,7 @@ export async function generateDescription(prompt: string, retryCount = 0) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini", // Correction du modèle
         messages: [
           {
             role: "system",
@@ -49,28 +49,32 @@ export async function generateDescription(prompt: string, retryCount = 0) {
         max_tokens: 1000
       });
 
-      return completion.choices[0].message.content;
+      const content = completion.choices[0].message.content;
+      if (!content) {
+        throw new Error("La réponse d'OpenAI est vide");
+      }
+
+      return content;
+
     } catch (openaiError: any) {
       console.error("Erreur OpenAI détaillée:", openaiError);
       
       if (openaiError?.status === 429) {
-        const errorBody = JSON.parse(openaiError.body);
-        const waitTime = errorBody?.error?.message?.match(/try again in (\d+\.?\d*)s/)?.[1];
+        if (openaiError.message?.includes("quota")) {
+          throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
+        }
         
-        if (waitTime && retryCount < 3) {
-          console.log(`Attente de ${waitTime}s avant de réessayer...`);
-          await wait(Math.ceil(parseFloat(waitTime) * 1000));
+        const waitTime = 2000 * (retryCount + 1); // Backoff exponentiel
+        if (retryCount < 3) {
+          console.log(`Attente de ${waitTime/1000}s avant de réessayer...`);
+          await wait(waitTime);
           return generateDescription(prompt, retryCount + 1);
         }
         
-        if (errorBody?.error?.message?.includes("quota")) {
-          throw new Error("La limite de quota OpenAI a été atteinte. Veuillez vérifier votre plan et vos détails de facturation sur OpenAI.");
-        } else {
-          throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
-        }
+        throw new Error("Trop de requêtes. Veuillez réessayer dans quelques instants.");
       }
       
-      throw openaiError;
+      throw new Error(`Erreur OpenAI: ${openaiError.message || "Erreur inconnue"}`);
     }
   } catch (error: any) {
     console.error("Erreur lors de la génération de la description:", error);
